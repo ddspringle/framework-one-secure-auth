@@ -20,8 +20,9 @@ This code was put together for the `ColdFusion: Code Security Best Practices` pr
 1. Drop the code into your favorite CFML engine's webroot
 2. Create a database and generate the user database table (MSSQL SQL provided in the 'database' folder)
 3. Create a datasource for your database in your CFML engine's admin
-3. Configure an object cache, if one is not already defined (Railo/Lucee)
-4. Browse to webroot and enjoy!
+4. Configure an object cache, if one is not already defined (Railo/Lucee)
+5. Modify encryption keys/algorithms/encoding in Application.cfc (use http://www.dvdmenubacks.com/key.cfm to generate keys)
+6. Browse to webroot and enjoy!
 
 ## Demo
 
