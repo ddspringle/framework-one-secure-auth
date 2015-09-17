@@ -22,7 +22,8 @@ This code was put together for the `ColdFusion: Code Security Best Practices` pr
 3. Create a datasource for your database in your CFML engine's admin
 4. Configure an object cache, if one is not already defined (Railo/Lucee)
 5. Modify encryption keys/algorithms/encoding in Application.cfc (use http://www.dvdmenubacks.com/key.cfm to generate keys)
-6. Browse to webroot and enjoy!
+6. Modify cookieName and timeoutSession variables in Application.cfc
+7. Browse to webroot and enjoy!
 
 ## Demo
 
