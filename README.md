@@ -13,7 +13,7 @@ This project is an example fw/1 application with secure authentication and sessi
 * Stores user data in encrypted format in the database
 * Default CBC/PKCS5Padding defined for encryption algorithms
 
-This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and is a good basic base starting point if you need to create a secure application using fw/1.
+This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and is a good basic starting point if you need to create a secure application using fw/1.
 
 ## Installing
 
