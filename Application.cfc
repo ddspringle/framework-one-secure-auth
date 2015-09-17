@@ -9,9 +9,9 @@
 component extends="framework.one" {
 
 	this.name = "secure_auth";
-    this.applicationTimeout = CreateTimeSpan(0, 0, 0, 5);
-    this.sessionManagement = true;
-    this.sessionTimeout = CreateTimeSpan(0, 0, 30, 0); // 30 minutes
+    	this.applicationTimeout = CreateTimeSpan(0, 0, 0, 5);
+    	this.sessionManagement = true;
+    	this.sessionTimeout = CreateTimeSpan(0, 0, 30, 0); // 30 minutes
 	this.datasource = 'secureauth';
 	
 	variables.framework = {
@@ -27,13 +27,13 @@ component extends="framework.one" {
 		// NOTE: These keys should normally be stored in a secured file on the filesystem and read in by the application
 		// NOTE: This could also be done using DI/AOP instead of loading it into the application scope
 		application.securityService = createObject( 'component', 'model.services.SecurityService').init(
-			encryptionKey1 			= 'Y2TB8NU7Qy+l+MTTeu3YAQ==',
+			encryptionKey1 		= '<key1>',
 			encryptionAlgorithm1 	= 'AES/CBC/PKCS5Padding',
 			encryptionEncoding1 	= 'HEX',
-			encryptionKey2 			= 'U08WUEw0HsmniGoaqZhpzA==',
+			encryptionKey2 		= '<key2>',
 			encryptionAlgorithm2 	= 'BLOWFISH/CBC/PKCS5Padding',
 			encryptionEncoding2 	= 'HEX',
-			encryptionKey3 			= 'kOsRA6apD6mKEINJRdMeUw==',
+			encryptionKey3 		= '<key3>',
 			encryptionAlgorithm3 	= 'AES/CBC/PKCS5Padding',
 			encryptionEncoding3 	= 'HEX'
 		);
