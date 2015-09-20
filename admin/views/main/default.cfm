@@ -81,7 +81,10 @@
                     </div>
                     <div class="panel-body">
                         <form role="form" id="loginForm" action="<cfoutput>#buildURL( 'main.authenticate' )#</cfoutput>" method="POST" autocomplete="off">
-                            <cfoutput><input type="hidden" id="heartbeat" name="heartbeat" value="#rc.heartbeat#"></cfoutput>
+                            <cfoutput>
+                                <input type="hidden" id="heartbeat" name="heartbeat" value="#rc.heartbeat#">
+                                <input type="hidden" id="token" name="token" value="#CSRFGenerateToken()#">
+                            </cfoutput>
                             <fieldset>
                                 <div class="row">
                                     <div class="center-block">

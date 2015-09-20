@@ -87,6 +87,12 @@ component accessors="true" {
 			variables.fw.redirect( action = 'main.default', queryString = 'msg=#urlEncodedFormat( '500: Email and Password required to login.' )#' );
 		}
 
+		// ensure the CSRF token is provided and valid
+		if( !structKeyExists( rc, 'token') OR !CSRFVerifyToken( token ) ) {
+			// it doesn't, redirect to the login page
+			variables.fw.redirect( action = 'main.default', queryString = 'msg=#urlEncodedFormat( '505: Your session has timed out. Please log in again to continue.' )#' );
+		}
+
 		// get the user from the database by encrypted username
 		qGetUser = userService.filter( username = application.securityService.dataEnc( rc.username, 'repeatable' ) );
 
