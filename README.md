@@ -7,11 +7,12 @@ This project is an example fw/1 application with secure authentication and sessi
 * Includes a SecurityService component that has encryption, decryption, hashing, password generation and session management code
 * Includes a security controller for managing session and request scope session management within the 'admin' subsystem
 * Uses cookies and object cache for session management
-* Rotates the session id on each request to help prevent CSRF
+* Rotates the session id on each request and utilizes form tokenization to help prevent CSRF
 * Federates the login with a cookie and referrer requirement
-* Protects the users password from disclosure with SHA-384 encryption during login
+* Protects the users password from disclosure with SHA-384 hashing during login
 * Stores user data in encrypted format in the database
 * Default CBC/PKCS5Padding defined for encryption algorithms
+* Includes HTTP security headers designed to reduce attack surface
 
 This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and is a good basic starting point if you need to create a secure application using fw/1.
 
