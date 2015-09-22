@@ -72,6 +72,11 @@ component extends="framework.one" {
 			controller( 'admin:security.authorize' );			
 		}
 
+		// use HTTP headers to help protect against common attack vectors
+		getPageContext().getResponse().addHeader( 'X-Frame-Options', 'deny' );
+		getPageContext().getResponse().addHeader( 'X-XSS-Protection', '1; mode=block' );
+		getPageContext().getResponse().addHeader( 'X-Content-Type-Options', 'nosniff' );
+
 	}
 
 }
