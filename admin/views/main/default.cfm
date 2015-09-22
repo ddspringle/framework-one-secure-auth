@@ -80,11 +80,11 @@
                         <strong>Secure Authentication Sign In</strong>
                     </div>
                     <div class="panel-body">
-                        <form role="form" id="loginForm" action="<cfoutput>#buildURL( 'main.authenticate' )#</cfoutput>" method="POST" autocomplete="off">
-                            <cfoutput>
-                                <input type="hidden" id="heartbeat" name="heartbeat" value="#rc.heartbeat#">
-                                <input type="hidden" id="token" name="token" value="#CSRFGenerateToken()#">
-                            </cfoutput>
+                        <cfoutput>
+                            <form role="form" id="loginForm" action="#buildURL( 'main.authenticate' )#" method="POST" autocomplete="off">
+                            <input type="hidden" id="heartbeat" name="heartbeat" value="#rc.heartbeat#">
+                            <input type="hidden" name="f#application.securityService.uberHash( 'token', 'SHA-512', 2000 )#" value="#CSRFGenerateToken()#">
+                        </cfoutput>
                             <fieldset>
                                 <div class="row">
                                     <div class="center-block">
