@@ -355,6 +355,7 @@ component displayname="SecurityService" accessors="true" {
 
 		clearUserSession( arguments.sessionObj );
 		arguments.sessionObj.setSessionId( getSessionId() );
+		arguments.sessionObj.setLastActionAt( now() );
 		setUserSession( arguments.sessionObj );
 
 		return arguments.sessionObj;
