@@ -76,13 +76,13 @@ component displayname="SecurityService" accessors="true" {
 				
 			// otherwise, check if the mode of the encryption is 'repeatable' //
 			} else if( findNoCase( 'repeatable', arguments.mode ) ) {
-			
+				
 				// using database encryption, encrypt with the first set of keys and algorithm //
-				onepass = encrypt( arguments.value, variables.encryptionKey1, 'AES', variables.encryptionEncoding1 );
+				onepass = encrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
 				// and again with the second set of keys and algorithm //
-				twopass = encrypt( onepass, variables.encryptionKey2, 'BLOWFISH', variables.encryptionEncoding2 );
+				twopass = encrypt( onepass, variables.encryptionKey2,  listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2 );
 				// and again with the third set of keys and algorithm //
-				lastPass = encrypt( twopass, variables.encryptionKey3, 'AES', variables.encryptionEncoding3);
+				lastPass = encrypt( twopass, variables.encryptionKey3,  listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3);
 			
 			// otherwise, check if the mode of the encryption is 'url' //
 			} else if( findNoCase( 'url', arguments.mode ) ) {
@@ -91,7 +91,7 @@ component displayname="SecurityService" accessors="true" {
 				if( findNoCase( 'BASE64', variables.encryptionEncoding1 ) ) {
 				
 					// encrypt with the first set of keys and repeatable algorithm //
-					lastPass = encrypt( arguments.value, variables.encryptionKey1, 'AES', variables.encryptionEncoding1);
+					lastPass = encrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1);
 					// using BASE64 encoding, URL encode the value //
 					lastPass = URLEncodedFormat( lastPass );
 				
@@ -157,11 +157,11 @@ component displayname="SecurityService" accessors="true" {
 			} else if( findNoCase( 'repeatable', arguments.mode ) ) {
 	
 				// using database encryption, decrypt with the third set of keys and algorithm //
-				var onePass = Decrypt( arguments.value, variables.encryptionKey3, 'AES', variables.encryptionEncoding3 );
+				var onePass = Decrypt( arguments.value, variables.encryptionKey3, listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3 );
 				// and again with the second set of keys and algorithm //
-				var twoPass = Decrypt( onepass, variables.encryptionKey2, 'BLOWFISH', variables.encryptionEncoding2 );
+				var twoPass = Decrypt( onepass, variables.encryptionKey2, listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2 );
 				// and again with the first set of keys and algorithm //
-				var lastPass = Decrypt( twopass, variables.encryptionKey1, 'AES', variables.encryptionEncoding1 );
+				var lastPass = Decrypt( twopass, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
 			
 			// otherwise, check if the mode of the encryption is 'url' //
 			} else if( findNoCase( 'url', arguments.mode ) ) {
@@ -174,7 +174,7 @@ component displayname="SecurityService" accessors="true" {
 					// replace spaces with + //
 					arguments.value = Replace( arguments.value, chr(32), '+', 'ALL' );
 					// decrypt with the first set of keys and repeatable algorithm //
-					lastPass = Decrypt( arguments.value, variables.encryptionKey1, 'AES', variables.encryptionEncoding1 );
+					lastPass = Decrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
 				
 				// otherwise //
 				} else {
@@ -315,6 +315,8 @@ component displayname="SecurityService" accessors="true" {
 			role = arguments.role,
 			firstName = arguments.firstName,
 			lastName = arguments.lastName,
+			mfaCode = getMfaCode(),
+			isAuthenticated = false,
 			lastActionAt = now()
 		);
 
