@@ -215,14 +215,7 @@ component displayname="SecurityService" accessors="true" {
     */
 	public string function uberHash( required string input, string method = 'SHA-384', numeric iterations = 1000, string outcase = 'lower' ) {
 
-		var output = arguments.input;
-		var ix = 0;
-
-		// loop over total iterations passed in
-		for( ix = 1; ix <= arguments.iterations; ix ++ ) {
-			// and hash the input with the passed in method
-			output = hash( output, arguments.method );
-		}
+		var output = hash( arguments.input, arguments.method, 'UTF-8', arguments.iterations );
 
 		// check if we're returning lowercase
 		if( findNoCase( 'lower', arguments.outcase ) ) {

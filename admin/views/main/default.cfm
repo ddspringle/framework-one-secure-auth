@@ -83,7 +83,7 @@
                         <cfoutput>
                             <form role="form" id="loginForm" action="#buildURL( 'main.authenticate' )#" method="POST" autocomplete="off">
                             <input type="hidden" id="heartbeat" name="heartbeat" value="#rc.heartbeat#">
-                            <input type="hidden" name="f#application.securityService.uberHash( 'token', 'SHA-512', 2000 )#" value="#CSRFGenerateToken()#">
+                            <input type="hidden" name="f#application.securityService.uberHash( 'token', 'SHA-512', 2000 )#" value="#CSRFGenerateToken( forceNew = true )#">
                         </cfoutput>
                             <fieldset>
                                 <div class="row">
