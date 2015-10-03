@@ -16,6 +16,11 @@ This project is an example fw/1 application with secure authentication and sessi
 
 This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and is a good basic starting point if you need to create a secure application using fw/1.
 
+## Compatibility
+
+* Adobe ColdFusion 10+
+* Lucee 4.5+
+
 ## Installing
 
 1. Drop the code into your favorite CFML engine's webroot
