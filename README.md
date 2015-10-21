@@ -1,8 +1,8 @@
 # FW/1 Secure Authentication Example
 
-This project is an example fw/1 application with secure authentication and session management functions as follows:
+This project is an example [fw/1](https://github.com/framework-one/fw1) application with secure authentication and session management functions as follows:
 
-* Based on basic example fw/1 application
+* Based on basic example [fw/1](https://github.com/framework-one/fw1) application
 * Uses subsystems for separation of concerns, securing only the 'admin' subsystem
 * Includes a SecurityService component that has encryption, decryption, hashing, password generation and session management code
 * Includes a security controller for managing session and request scope session management within the 'admin' subsystem
@@ -46,3 +46,7 @@ If you find any bugs or have a feature you'd like to see implemented in this cod
 ## Contributing
 
 This project is actively being maintained and monitored by Denard Springle. If you would like to contribute to this example please feel free to fork, modify and send a pull request!
+
+## Attribution
+
+This project is based on [Framework One (fw/1)](https://github.com/framework-one/fw1) by [Sean Corfield](https://twitter.com/seancorfield).
