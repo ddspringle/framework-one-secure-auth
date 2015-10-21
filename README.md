@@ -49,4 +49,4 @@ This project is actively being maintained and monitored by Denard Springle. If y
 
 ## Attribution
 
-This project is based on [Framework One (fw/1)](https://github.com/framework-one/fw1) by [Sean Corfield](https://twitter.com/seancorfield).
+This project utilizes the free open source MVC CFML (ColdFusion) framework  [Framework One (fw/1)](https://github.com/framework-one/fw1) by [Sean Corfield](https://twitter.com/seancorfield).
