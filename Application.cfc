@@ -77,6 +77,12 @@ component extends="framework.one" {
 		getPageContext().getResponse().addHeader( 'X-Frame-Options', 'deny' );
 		getPageContext().getResponse().addHeader( 'X-XSS-Protection', '1; mode=block' );
 		getPageContext().getResponse().addHeader( 'X-Content-Type-Options', 'nosniff' );
+		getPageContext().getResponse().addHeader( 'Strict-Transport-Security', 'max-age=31536000; includeSubDomains' );
+		getPageContext().getResponse().addHeader( 'Cache-Control', 'no-cache, no-store, must-revalidate' );
+		getPageContext().getResponse().addHeader( 'Pragma', 'no-cache' );
+		getPageContext().getResponse().addHeader( 'Expires', '-1' );
+		getPageContext().getResponse().addHeader( 'X-Permitted-Cross-Domain-Policies', 'master-only' );
+		getPageContext().getResponse().addHeader( 'Expires', '-1' );
 
 	}
 
