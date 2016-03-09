@@ -82,7 +82,6 @@ component extends="framework.one" {
 		getPageContext().getResponse().addHeader( 'Pragma', 'no-cache' );
 		getPageContext().getResponse().addHeader( 'Expires', '-1' );
 		getPageContext().getResponse().addHeader( 'X-Permitted-Cross-Domain-Policies', 'master-only' );
-		getPageContext().getResponse().addHeader( 'Expires', '-1' );
 
 	}
 
