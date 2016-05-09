@@ -14,6 +14,8 @@ component extends="framework.one" {
 	this.sessionTimeout = CreateTimeSpan(0, 0, 30, 0); // 30 minutes
 	this.datasource = 'secureauth';
 	this.scriptprotect = 'all';
+	// CF10+ uncomment the following line to make your cfid/cftoken cookies httpOnly
+	// this.sessioncookie.httpOnly;
 	
 	variables.framework = {
 		usingSubsystems = true

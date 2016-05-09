@@ -57,15 +57,15 @@
         <cfif len( rc.msg )>
             <div class="row">
                 <div class="col-sm-6 col-md-4 col-md-offset-4">
-                    <cfif !find( left( rc.msg, 3), '200')>
+                    <cfif !rc.msg eq 200>
                         <div class="alert alert-danger alert-dismissable">
                             <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                            <i class="fa fa-exclamation-triangle"></i> <cfoutput>#urlDecode( rc.msg )#</cfoutput>
+                            <i class="fa fa-exclamation-triangle"></i> <cfoutput>#encodeForHtml( rc.message )#</cfoutput>
                         </div>
                     <cfelse>
                         <div class="alert alert-success alert-dismissable">
                             <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                            <i class="fa fa-info-circle"></i> <cfoutput>#urlDecode( rc.msg )#</cfoutput>
+                            <i class="fa fa-info-circle"></i> <cfoutput>#encodeForHtml( rc.message )#</cfoutput>
                         </div>
                     </cfif>
                 </div>

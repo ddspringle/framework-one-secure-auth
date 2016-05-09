@@ -40,6 +40,25 @@ component accessors="true" {
 		// get a hash for use in preventing password disclosure
 		rc.heartbeat = application.securityService.getHeartbeat();
 
+		// set a null message string
+		rc.message = '';
+
+		// check for the existence of the 'msg' url paramter
+		if( structKeyExists( rc, 'msg' ) ) {
+			// and generate a message to be displayed
+			if( rc.msg eq 500 ) {
+				rc.message = 'Both Email and Password fields are required to login.';
+			} else if( rc.msg eq 404 or rc.msg eq 403 ) {
+				rc.message = 'Account not found with provided credentials. Please try again.';
+			} else if( rc.msg eq 555 ) {
+				rc.message = 'Account is disabled. Please contact your system administrator.';
+			} else if( rc.msg eq 200 ) {
+				rc.message = "You have been successfully logged out.";
+			} else {
+				rc.message = 'Your session has timed out. Please log in again to continue.';
+			}
+		}
+
 	}
 
     /**
@@ -72,25 +91,25 @@ component accessors="true" {
 		// check if the host and referrer match (federate the login)
 		if( !findNoCase( CGI.HTTP_HOST, CGI.HTTP_REFERER ) ) {
 			// they don't, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=#urlEncodedFormat( '503: Your session has timed out. Please log in again to continue.' )#' );		
+			variables.fw.redirect( action = 'main.default', queryString = 'msg=503' );		
 		}
 
 		// check if the session cookie exists (federate the login)
 		if( !structKeyExists( cookie, application.cookieName ) ) {
 			// it doesn't, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=#urlEncodedFormat( '504: Your session has timed out. Please log in again to continue.' )#' );			
+			variables.fw.redirect( action = 'main.default', queryString = 'msg=504' );			
 		}
 
 		// ensure a username and password were sent
 		if( !len( rc.username ) OR !len( rc.password ) ) {
 			// they weren't, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=#urlEncodedFormat( '500: Email and Password required to login.' )#' );
+			variables.fw.redirect( action = 'main.default', queryString = 'msg=500' );
 		}
 
 		// ensure the CSRF token is provided and valid
 		if( !structKeyExists( rc, 'f' & application.securityService.uberHash( 'token', 'SHA-512', 2000 ) ) OR !CSRFVerifyToken( rc[ 'f' & application.securityService.uberHash( 'token', 'SHA-512', 2000 ) ] ) ) {
 			// it doesn't, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=#urlEncodedFormat( '505: Your session has timed out. Please log in again to continue.' )#' );
+			variables.fw.redirect( action = 'main.default', queryString = 'msg=505' );
 		}
 
 		// get the user from the database by encrypted username
@@ -99,13 +118,13 @@ component accessors="true" {
 		// check if there is a record for the passed username
 		if( !qGetUser.recordCount ) {
 			// there isn't, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=#urlEncodedFormat( '404: Account not found with provided credentials. Please try again.' )#' );
+			variables.fw.redirect( action = 'main.default', queryString = 'msg=404' );
 		}
 
 		// check to be sure this user has an active account
 		if( !qGetUser.isActive ) {
 			// they don't, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=#urlEncodedFormat( '500: Account is disabled. Please contact your system administrator.' )#' );
+			variables.fw.redirect( action = 'main.default', queryString = 'msg=555' );
 		}
 
 		// hash the users stored password with the passed heartbeat for comparison
@@ -114,7 +133,7 @@ component accessors="true" {
 		// compare the hashed stored password with the passed password
 		if( !findNoCase( hashedPwd, rc.password ) ) {
 			// they don't match, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=#urlEncodedFormat( '403: Account not found with provided credentials. Please try again.' )#' );
+			variables.fw.redirect( action = 'main.default', queryString = 'msg=403' );
 		}
 
 		// lock the session scope and create a sessionObj for this user
@@ -153,7 +172,7 @@ component accessors="true" {
         getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=0;path=/;domain=.#CGI.HTTP_HOST#;HTTPOnly");
 
         // go to the login page
-		variables.fw.redirect( action = 'main.default', queryString = 'msg=#urlEncodedFormat( '200: You have been successfully logged out.' )#' );
+		variables.fw.redirect( action = 'main.default', queryString = 'msg=200' );
 
 	}
 	

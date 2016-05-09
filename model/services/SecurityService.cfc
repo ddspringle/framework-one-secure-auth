@@ -1,6 +1,6 @@
 /**
 *
-* @file SecurityService.cfc
+* @file model\services\SecurityService.cfc
 * @author Denard Springle ( denard.springle@gmail.com )
 * @description I provide security and session related functions
 *
