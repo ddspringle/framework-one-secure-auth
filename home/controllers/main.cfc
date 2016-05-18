@@ -122,6 +122,8 @@ component accessors="true" {
 			// and generate a message to be displayed
 			if( rc.msg eq 403 ) {
 				rc.message = 'A user account could not be located for this email address. Please register for an account.';
+			} else if( rc.msg eq 200 ) {
+				rc.message = 'An email has been sent with your new password. Please check your email and login with the new password provided.';
 			} else {
 				rc.message = '';
 			}
@@ -149,7 +151,7 @@ component accessors="true" {
 		// check if there isn't a record for the passed username
 		if( !qGetUser.recordCount ) {
 			// user does not exist, redirect to reset page
-			variables.fw.redirect( action = 'main.reset', queryString = "msg=#urlEncodedFormat( '403: ' )#" );			
+			variables.fw.redirect( action = 'main.reset', queryString = "msg=403" );
 		}
 
 		// get a user object to modify
@@ -163,9 +165,8 @@ component accessors="true" {
 		// email the customer their new password
 		//mailService.sendPasswordResetEmail( rc.userObj, randomPass );
 
-		// user does not exist, redirect to reset page
-		variables.fw.redirect( action = 'main.reset', queryString = "msg=403" );	
-
+		// password reset, redirect to reset page
+		variables.fw.redirect( action = 'main.reset', queryString = "msg=200" );
 	}
 	
 }
