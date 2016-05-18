@@ -50,3 +50,7 @@ This project is actively being maintained and monitored by Denard Springle. If y
 ## Attribution
 
 This project utilizes the free open source MVC CFML (ColdFusion) framework  [Framework One (fw/1)](https://github.com/framework-one/fw1) by [Sean Corfield](https://twitter.com/seancorfield).
+
+## License
+
+The use and distribution terms for this software are covered by the Apache Software License 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
