@@ -50,11 +50,11 @@ component displayname="SecurityService" accessors="true" {
 
 	// DATA ENCRYPTION //
 
-    /**
-    * @displayname dataEnc
-    * @description I encrypt passed in values based on scope
-    * @return      String
-    */
+	/**
+	* @displayname dataEnc
+	* @description I encrypt passed in values based on scope
+	* @return      String
+	*/
 	public string function dataEnc( required string value, string mode = 'db' ) {
 		
 		var onePass = '';
@@ -128,11 +128,11 @@ component displayname="SecurityService" accessors="true" {
 
 	// DATA DECRYPTION //
 
-    /**
-    * @displayname dataDec
-    * @description I decrypt passed in values based on scope
-    * @return      String
-    */
+	/**
+	* @displayname dataDec
+	* @description I decrypt passed in values based on scope
+	* @return      String
+	*/
 	public string function dataDec( required string value, string mode = 'db' ) {
 
 		// var scope //
@@ -208,11 +208,11 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
-    /**
-    * @displayname uberHash
-    * @description I hash and return passed in values based on method and iterations (ACF support)
-    * @return      String
-    */
+	/**
+	* @displayname uberHash
+	* @description I hash and return passed in values based on method and iterations (ACF support)
+	* @return      String
+	*/
 	public string function uberHash( required string input, string method = 'SHA-384', numeric iterations = 1000, string outcase = 'lower' ) {
 
 		var output = hash( arguments.input, arguments.method, 'UTF-8', arguments.iterations );
@@ -228,11 +228,11 @@ component displayname="SecurityService" accessors="true" {
 	}
 
 
-    /**
-    * @displayname getRandomPassword
-    * @description I generate a random password of random length
-    * @return      String
-    */
+	/**
+	* @displayname getRandomPassword
+	* @description I generate a random password of random length
+	* @return      String
+	*/
 	public string function getRandomPassword() {
 
 		var alpha = 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z';
@@ -263,11 +263,11 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
-    /**
-    * @displayname checkUserSession
-    * @description I retrieve the users session object from cache, and return it if it exists, else I return a blank session object
-    * @return      Session
-    */
+	/**
+	* @displayname checkUserSession
+	* @description I retrieve the users session object from cache, and return it if it exists, else I return a blank session object
+	* @return      Session
+	*/
 	public any function checkUserSession( required string sessionId ) {
 
 		// get the session object from the cache
@@ -295,11 +295,11 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
-    /**
-    * @displayname createUserSession
-    * @description I generate and resturn a session object based on passed in values
-    * @return      Session
-    */
+	/**
+	* @displayname createUserSession
+	* @description I generate and resturn a session object based on passed in values
+	* @return      Session
+	*/
 	public any function createUserSession( required numeric userId, required numeric role, required string firstName, required string lastName ) {
 
 		var sessionObj = createObject( 'component', 'model.beans.Session').init(
@@ -319,33 +319,33 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
-    /**
-    * @displayname setUserSession
-    * @description I store a sessio0n object in the cache
-    * @return      Void
-    */
+	/**
+	* @displayname setUserSession
+	* @description I store a sessio0n object in the cache
+	* @return      Void
+	*/
 	public void function setUserSession( required any sessionObj ) {
 
 		cachePut( uberHash( arguments.sessionObj.getSessionId(), 'MD5', 3000 ), arguments.sessionObj, createTimeSpan( 0, 0, application.timeoutMinutes, 0), createTimeSpan( 0, 0, application.timeoutMinutes, 0 ) );
 
 	}
 
-    /**
-    * @displayname clearUserSession
-    * @description I remove a sessio0n object from the cache
-    * @return      Void
-    */
+	/**
+	* @displayname clearUserSession
+	* @description I remove a sessio0n object from the cache
+	* @return      Void
+	*/
 	public void function clearUserSession( required any sessionObj ) {
 
 		cacheRemove( uberHash( arguments.sessionObj.getSessionId(), 'MD5', 3000 ) );
 
 	}
 
-    /**
-    * @displayname rotateUserSession
-    * @description I update the session id of a session object, remove the old session and save the new one 
-    * @return      Session
-    */
+	/**
+	* @displayname rotateUserSession
+	* @description I update the session id of a session object, remove the old session and save the new one 
+	* @return      Session
+	*/
 	public any function rotateUserSession( required any sessionObj ) {
 
 		clearUserSession( arguments.sessionObj );
@@ -357,11 +357,11 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
-    /**
-    * @displayname getSessionId
-    * @description I generate a random hashed session id
-    * @return      String
-    */
+	/**
+	* @displayname getSessionId
+	* @description I generate a random hashed session id
+	* @return      String
+	*/
 	public string function getSessionId() {
 
 		var sessionId = uberHash( createUUID() & now(), 'SHA-384', 2000 );
@@ -370,11 +370,11 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
-    /**
-    * @displayname setSessionIdForCookie
-    * @description I encrypt the session id of a session object for cookie storage
-    * @return      String
-    */
+	/**
+	* @displayname setSessionIdForCookie
+	* @description I encrypt the session id of a session object for cookie storage
+	* @return      String
+	*/
 	public string function setSessionIdForCookie( required string sessionId ) {
 
 		var cookieId = dataEnc( arguments.sessionId, 'cookie' );
@@ -383,11 +383,11 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
-    /**
-    * @displayname getSessionIdFromCookie
-    * @description I decrypt the session id of a session object from cookie storage
-    * @return      String
-    */
+	/**
+	* @displayname getSessionIdFromCookie
+	* @description I decrypt the session id of a session object from cookie storage
+	* @return      String
+	*/
 	public string function getSessionIdFromCookie( required string cookieId ) {
 
 		var sessionId = dataDec( arguments.cookieId, 'cookie' );
@@ -396,11 +396,11 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
-    /**
-    * @displayname geHeartbeat
-    * @description I generate a random hash of random length for use in authentication (to prevent password disclosure)
-    * @return      String
-    */
+	/**
+	* @displayname geHeartbeat
+	* @description I generate a random hash of random length for use in authentication (to prevent password disclosure)
+	* @return      String
+	*/
 	public string function getHeartbeat() {
 
 		var heartbeat = lCase( left( uberHash( now() & createUUID() & randRange( 1000, 9999 ), 'SHA-384', randRange( 1000, 3000 ) ), randRange( 32, 64 ) ) );
@@ -409,11 +409,11 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
-    /**
-    * @displayname getMfaCode
-    * @description I generate a random hashed two-factor authentication code of a random length
-    * @return      String
-    */
+	/**
+	* @displayname getMfaCode
+	* @description I generate a random hashed two-factor authentication code of a random length
+	* @return      String
+	*/
 	public string function getMfaCode() {
 
 		var mfaCode = left( uberHash( createUUID() & now(), 'MD5', RandRange(1000,3000) ), randRange( 4, 8 ) );

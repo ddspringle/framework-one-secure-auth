@@ -28,20 +28,14 @@ component accessors="true" {
 
 		// disable the admin layout since the login page has it's own html
 		variables.fw.disableLayout();
-        
-        // set a zero session cookie when hitting the login page (federate the login)
-        getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=0;path=/;domain=.#CGI.HTTP_HOST#;HTTPOnly");
+		
+		// set a zero session cookie when hitting the login page (federate the login)
+		getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=0;path=/;domain=.#CGI.HTTP_HOST#;HTTPOnly");
 
-        // lock and clear the sessionObj
+		// lock and clear the sessionObj
 		lock scope='session' timeout='10' {			
-            session.sessionObj = createObject( 'component', 'model.beans.Session').init();
+			session.sessionObj = createObject( 'component', 'model.beans.Session').init();
 		}
-
-		// get a hash for use in preventing password disclosure
-		rc.heartbeat = application.securityService.getHeartbeat();
-
-		// set a null message string
-		rc.message = '';
 
 		// check for the existence of the 'msg' url paramter
 		if( structKeyExists( rc, 'msg' ) ) {
@@ -57,14 +51,23 @@ component accessors="true" {
 			} else {
 				rc.message = 'Your session has timed out. Please log in again to continue.';
 			}
+		// if it doesn't exist
+		} else {
+			// create it
+			rc.msg = 0;
+			// and set a null message string
+			rc.message = '';
 		}
+
+		// set a title for the login page to render
+		rc.title = 'Secure Authentication Sign In';
 
 	}
 
-    /**
-    * @displayname dashboard
-    * @description I present the dashbaord view
-    */ 
+	/**
+	* @displayname dashboard
+	* @description I present the dashbaord view
+	*/ 
 	public void function dashboard( rc ) {
 
 		rc.product = server.coldfusion.productname;
@@ -107,7 +110,7 @@ component accessors="true" {
 		}
 
 		// ensure the CSRF token is provided and valid
-		if( !structKeyExists( rc, 'f' & application.securityService.uberHash( 'token', 'SHA-512', 2000 ) ) OR !CSRFVerifyToken( rc[ 'f' & application.securityService.uberHash( 'token', 'SHA-512', 2000 ) ] ) ) {
+		if( !structKeyExists( rc, 'f' & application.securityService.uberHash( 'token', 'SHA-512', 150 ) ) OR !CSRFVerifyToken( rc[ 'f' & application.securityService.uberHash( 'token', 'SHA-512', 150 ) ] ) ) {
 			// it doesn't, redirect to the login page
 			variables.fw.redirect( action = 'main.default', queryString = 'msg=505' );
 		}
@@ -147,9 +150,9 @@ component accessors="true" {
 		}
 
 		// set the session cookie with the new encrypted session id
-        getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=#application.securityService.setSessionIdForCookie( session.sessionObj.getSessionId() )#;path=/;domain=.#CGI.HTTP_HOST#;HTTPOnly");
+		getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=#application.securityService.setSessionIdForCookie( session.sessionObj.getSessionId() )#;path=/;domain=.#CGI.HTTP_HOST#;HTTPOnly");
 
-        // and go to the dashboard view
+		// and go to the dashboard view
 		variables.fw.redirect( 'main.dashboard' );
 
 	}
@@ -163,15 +166,15 @@ component accessors="true" {
 		// clear the users session object from cache
 		application.securityService.clearUserSession( session.sessionObj );
 
-        // lock and clear the sessionObj
+		// lock and clear the sessionObj
 		lock scope='session' timeout='10' {			
-            session.sessionObj = createObject( 'component', 'model.beans.Session').init();
+			session.sessionObj = createObject( 'component', 'model.beans.Session').init();
 		}
 
-        // set a zero session cookie when hitting the login page (federate the login)
-        getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=0;path=/;domain=.#CGI.HTTP_HOST#;HTTPOnly");
+		// set a zero session cookie when hitting the login page (federate the login)
+		getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=0;path=/;domain=.#CGI.HTTP_HOST#;HTTPOnly");
 
-        // go to the login page
+		// go to the login page
 		variables.fw.redirect( action = 'main.default', queryString = 'msg=200' );
 
 	}

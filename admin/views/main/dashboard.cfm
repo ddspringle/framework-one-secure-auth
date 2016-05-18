@@ -24,6 +24,6 @@
 		<div class="col-md-12">&nbsp;</div>
 	</div>
 	<div class="row">
-		<div class="col-md-12">Running #rc.product# #rc.version#</div>
+		<div class="col-md-12">Running #encodeForHtml( rc.product )# #encodeForHtml( rc.version )#</div>
 	</div>
 </cfoutput>

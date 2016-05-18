@@ -8,41 +8,63 @@
 
 component accessors="true" {
 
-    property beanFactory;
-    property formatterService;
-    property userService;
-    //property mailService;
+	property beanFactory;
+	property formatterService;
+	property userService;
+	//property mailService;
 
-    /**
-    * @displayname init
-    * @description I am the constructor method for main
-    * @return      this
-    */  	
+	/**
+	* @displayname init
+	* @description I am the constructor method for main
+	* @return      this
+	*/  	
 	public any function init( fw ) {
 		variables.fw = fw;
 		return this;
 	}
 
-    /**
-    * @displayname default
-    * @description I use the existing fw/1 example code
-    */  	
+	/**
+	* @displayname default
+	* @description I use the existing fw/1 example code
+	*/  	
 	public void function default( rc ) {
 		// keep existing basic example fw/1 code
-        var instant = variables.beanFactory.getBean( "instant" );
+		var instant = variables.beanFactory.getBean( "instant" );
 		rc.today = variables.formatterService.longdate( instant.created() );
 	}
 
-    /**
-    * @displayname register
-    * @description I present the registration view
-    */ 
-	public void function register( rc ) {}
+	/**
+	* @displayname register
+	* @description I present the registration view
+	*/ 
+	public void function register( rc ) {
 
-    /**
-    * @displayname process
-    * @description I process registration requests and display the process view
-    */ 
+		// check for the existence of the 'msg' url paramter
+		if( structKeyExists( rc, 'msg') ) {
+			// and generate a message to be displayed
+			if( rc.msg eq 501 ) {
+				rc.message = 'You must provide a valid value for all fields to register.';
+			} else if( rc.msg = 502 ) {
+				rc.message = 'Your password and confirmation password do not match. Please try again.';
+			} else if( rc.msg = 503 ) {
+				rc.message = 'A user account already exists for this email address. Please log in.';
+			} else {
+				rc.message = '';
+			}
+		// if it doesn't exist
+		} else {
+			// create it
+			rc.msg = 0;
+			// and set a null message string
+			rc.message = '';
+		}
+
+	}
+
+	/**
+	* @displayname process
+	* @description I process registration requests and display the process view
+	*/ 
 	public void function process( rc ) {
 
 		var qGetUser = '';
@@ -54,14 +76,14 @@ component accessors="true" {
 			// ensure the username, password, confirm, firstName and lastName have been passed in
 			if( !structKeyExists( rc, listGetAt( fieldList, ix ) ) OR !len( rc[ listGetAt( fieldList, ix ) ] ) ) {
 				// missing something, redirect to registration page
-				variables.fw.redirect( action = 'main.register', queryString = "msg=#urlEncodedFormat( 'You must provide a valid value for all fields to register.' )#" );
+				variables.fw.redirect( action = 'main.register', queryString = "msg=501" );
 			}
 		}
 
 		// check if the password and confirmation are the same 
 		if( compareNoCase( rc.password, rc.confirm ) NEQ 0 ) {
 				// password mismatch, redirect to registration page
-				variables.fw.redirect( action = 'main.register', queryString = "msg=#urlEncodedFormat( 'Your password and confirmation password do not match. Please try again.' )#" );			
+				variables.fw.redirect( action = 'main.register', queryString = "msg=502" );			
 		}
 
 		// get the user from the database by encrypted username passed in
@@ -70,7 +92,7 @@ component accessors="true" {
 		// check if there is a record for the passed username
 		if( qGetUser.recordCount ) {
 			// user exists, redirect to register page
-			variables.fw.redirect( action = 'main.register', queryString = "msg=#urlEncodedFormat( 'A user account already exists for this email address. Please log in.' )#" );			
+			variables.fw.redirect( action = 'main.register', queryString = "msg=503" );			
 		}
 
 		// get a user object to populate
@@ -89,16 +111,33 @@ component accessors="true" {
 
 	}
 
-    /**
-    * @displayname reset
-    * @description I present the reset view
-    */ 
-	public void function reset( rc ) {}
+	/**
+	* @displayname reset
+	* @description I present the reset view
+	*/ 
+	public void function reset( rc ) {
 
-    /**
-    * @displayname resetpass
-    * @description I reset the users password
-    */ 
+		// check for the existence of the 'msg' url paramter
+		if( structKeyExists( rc, 'msg') ) {
+			// and generate a message to be displayed
+			if( rc.msg eq 403 ) {
+				rc.message = 'A user account could not be located for this email address. Please register for an account.';
+			} else {
+				rc.message = '';
+			}
+		// if it doesn't exist
+		} else {
+			// create it
+			rc.msg = 0;
+			// and set a null message string
+			rc.message = '';
+		}
+	}
+
+	/**
+	* @displayname resetpass
+	* @description I reset the users password
+	*/ 
 	public void function resetpass( rc ) {
 
 		// disabled until you write a mailService to handle emailing the user their new password
@@ -110,7 +149,7 @@ component accessors="true" {
 		// check if there isn't a record for the passed username
 		if( !qGetUser.recordCount ) {
 			// user does not exist, redirect to reset page
-			variables.fw.redirect( action = 'main.reset', queryString = "msg=#urlEncodedFormat( '403: A user account could not be located for this email address. Please register for an account.' )#" );			
+			variables.fw.redirect( action = 'main.reset', queryString = "msg=#urlEncodedFormat( '403: ' )#" );			
 		}
 
 		// get a user object to modify
@@ -125,7 +164,7 @@ component accessors="true" {
 		//mailService.sendPasswordResetEmail( rc.userObj, randomPass );
 
 		// user does not exist, redirect to reset page
-		variables.fw.redirect( action = 'main.reset', queryString = "msg=#urlEncodedFormat( '200: An email has been sent with your new password. Please check your email and login with the new password provided.' )#" );	
+		variables.fw.redirect( action = 'main.reset', queryString = "msg=403" );	
 
 	}
 	

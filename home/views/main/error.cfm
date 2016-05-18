@@ -6,7 +6,7 @@
 		<p><b>An error occurred!</b></p>
 		<cfoutput>
 			<cfif structKeyExists( request, 'failedAction' )>
-                <!--- sanitize user supplied value before displaying it --->
+				<!--- sanitize user supplied value before displaying it --->
 				<b>Action:</b> #replace( request.failedAction, "<", "&lt;", "all" )#<br/>
 			<cfelse>
 				<b>Action:</b> unknown<br/>

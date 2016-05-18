@@ -1,11 +1,11 @@
 component {
 
-    function init() {
-        variables.when = now();
-    }
+	function init() {
+		variables.when = now();
+	}
 
-    function created() {
-        return variables.when;
-    }
+	function created() {
+		return variables.when;
+	}
 
 }
