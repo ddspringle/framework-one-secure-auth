@@ -47,9 +47,19 @@ component {
 				variables.fw.redirect( action = 'main.default', queryString = "msg=501" );  
 			}
 
+			// try 
+			try {
+				// decrypt the cookie
+				rc.sessionId = application.securityService.getSessionIdFromCookie( cookie[ application.cookieName ] );
+			// catch any decryption errors
+			} catch ( any e ) {
+				// decryption failed (invalid cookie value), redirect to the login page
+				variables.fw.redirect( action = 'main.default', queryString = "msg=501" );
+			}
+
 			// lock the session and get the sessionObj from the cache
 			lock scope='session' timeout='10' {
-				session.sessionObj = application.securityService.checkUserSession( application.securityService.getSessionIdFromCookie( cookie[ application.cookieName ] ) );
+				session.sessionObj = application.securityService.checkUserSession( rc.sessionId );
 			}
 
 			// check if the sessionObj returned is valid
