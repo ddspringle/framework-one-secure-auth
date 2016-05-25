@@ -76,13 +76,10 @@ component {
 				session.sessionObj = application.securityService.rotateUserSession( session.sessionObj );
 			}
 
-			// If not rotating sessions for every request, then uncomment the following lines
-			// to ensure that the session's last action at is updated and doesn't prematurely timeout
-			/*
+			// Update session's last action datetime and save session
 			lock scope='session' timeout='10' {
 				session.sessionObj = application.securityService.updateUserSession( session.sessionObj );
 			}
-			*/
 
 			// send a new cookie with the new encrypted session id
 			getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=#application.securityService.setSessionIdForCookie( session.sessionObj.getSessionId() )#;path=/;domain=.#CGI.HTTP_HOST#;HTTPOnly");

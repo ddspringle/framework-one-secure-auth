@@ -343,15 +343,12 @@ component displayname="SecurityService" accessors="true" {
 
 	/**
 	* @displayname rotateUserSession
-	* @description I update the session id of a session object, remove the old session and save the new one 
+	* @description I update the session id of a session object 
 	* @return      Session
 	*/
 	public any function rotateUserSession( required any sessionObj ) {
 
-		clearUserSession( arguments.sessionObj );
 		arguments.sessionObj.setSessionId( getSessionId() );
-		arguments.sessionObj.setLastActionAt( now() );
-		setUserSession( arguments.sessionObj );
 
 		return arguments.sessionObj;
 
@@ -362,7 +359,7 @@ component displayname="SecurityService" accessors="true" {
     * @description I update the last action at of a session object, remove the old session and save the new one 
     * @return      Session
     */
-	public any function rotateUserSession( required any sessionObj ) {
+	public any function updateUserSession( required any sessionObj ) {
 
 		clearUserSession( arguments.sessionObj );
 		arguments.sessionObj.setLastActionAt( now() );
