@@ -357,6 +357,21 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
+    /**
+    * @displayname updateUserSession
+    * @description I update the last action at of a session object, remove the old session and save the new one 
+    * @return      Session
+    */
+	public any function rotateUserSession( required any sessionObj ) {
+
+		clearUserSession( arguments.sessionObj );
+		arguments.sessionObj.setLastActionAt( now() );
+		setUserSession( arguments.sessionObj );
+
+		return arguments.sessionObj;
+
+	}
+
 	/**
 	* @displayname getSessionId
 	* @description I generate a random hashed session id
