@@ -38,7 +38,11 @@ component extends="framework.one" {
 			encryptionEncoding2 	= 'HEX',
 			encryptionKey3 			= '<key3>',
 			encryptionAlgorithm3 	= 'AES/CBC/PKCS5Padding',
-			encryptionEncoding3 	= 'HEX'
+			encryptionEncoding3 	= 'HEX',
+			hmacKey			= '',
+			hmacAlgorithm		= 'HMACSHA512',
+			hmacEncoding		= 'utf-8',
+			generateHmacKey		= true
 		);
 
 		// set the name of the cookie to use for session management (*DO NOT USE* cfid, cftoken or jsessionid)
@@ -72,7 +76,15 @@ component extends="framework.one" {
 		// check if we're in the 'admin' subsystem
 		if( getSubsystem()  eq 'admin' ) {
 			// we are, call the security controller's authorize action to perform session management
-			controller( 'admin:security.authorize' );			
+			controller( 'admin:security.authorize' );
+			// set HTTP headers to disallow caching of admin pages
+			getPageContext().getResponse().addHeader( 'Cache-Control', 'no-cache, no-store, must-revalidate' );
+			getPageContext().getResponse().addHeader( 'Pragma', 'no-cache' );
+		// otherwise
+		} else {
+			// we aren't in the admin subsystem, set a paractical age for cache control for performance
+			// in seconds (86400 = 1 day)
+			getPageContext().getResponse().addHeader( 'Cache-Control', 'max-age=86400' );
 		}
 
 		// use HTTP headers to help protect against common attack vectors
@@ -80,8 +92,6 @@ component extends="framework.one" {
 		getPageContext().getResponse().addHeader( 'X-XSS-Protection', '1; mode=block' );
 		getPageContext().getResponse().addHeader( 'X-Content-Type-Options', 'nosniff' );
 		getPageContext().getResponse().addHeader( 'Strict-Transport-Security', 'max-age=31536000; includeSubDomains' );
-		getPageContext().getResponse().addHeader( 'Cache-Control', 'no-cache, no-store, must-revalidate' );
-		getPageContext().getResponse().addHeader( 'Pragma', 'no-cache' );
 		getPageContext().getResponse().addHeader( 'Expires', '-1' );
 		getPageContext().getResponse().addHeader( 'X-Permitted-Cross-Domain-Policies', 'master-only' );
 

@@ -17,6 +17,9 @@ component displayname="SecurityService" accessors="true" {
 	property encryptionKey3;
 	property encryptionAlgorithm3;
 	property encryptionEncoding3;
+	property hmacKey;
+	property hmacAlgorithm;
+	property hmacEncoding;
 
 	/**
 	* @displayname init
@@ -30,9 +33,27 @@ component displayname="SecurityService" accessors="true" {
 	* @param 	{String} encryptionKey3 I am the encryption key used for pass number 3
 	* @param 	{String} encryptionAlgorithm3 I am the encryption algorithm used for pass number 3
 	* @param 	{String} encryptionEncoding3 I am the encryption encoding used for pass number 3
+	* @param 	{String} hmacKey I am the key used for hmac hashing
+	* @param 	{String} hmacAlgorithm I am the hashing algorithm used for hmac hashing
+	* @param 	{String} hmacEncoding I am the encoding used for hmac hashing
+	* @param 	{Boolean} generateHmacKey I am a flag to indicate if the service should generate an hmac key from an xor of the existing encryption keys (true), or use the provided hmacKey (false)
 	* @return 	this
 	*/	
-	public function init( string encryptionKey1 = '', string encryptionAlgorithm1 = '', string encryptionEncoding1 = '', string encryptionKey2 = '', string encryptionAlgorithm2 = '', string encryptionEncoding2 = '', string encryptionKey3 = '', string encryptionAlgorithm3 = '', string encryptionEncoding3 = '' ) {
+	public function init( 
+		string encryptionKey1 = '',
+		string encryptionAlgorithm1 = '',
+		string encryptionEncoding1 = '',
+		string encryptionKey2 = '',
+		string encryptionAlgorithm2 = '',
+		string encryptionEncoding2 = '',
+		string encryptionKey3 = '',
+		string encryptionAlgorithm3 = '',
+		string encryptionEncoding3 = '',
+		string hmacKey = '',
+		string hmacAlgorithm = '',
+		string hmacEncoding = '',
+		boolean generateHmacKey = false
+		) {
 
 		variables.encryptionKey1 = arguments.encryptionKey1;
 		variables.encryptionAlgorithm1 = arguments.encryptionAlgorithm1;
@@ -43,6 +64,17 @@ component displayname="SecurityService" accessors="true" {
 		variables.encryptionKey3 = arguments.encryptionKey3;
 		variables.encryptionAlgorithm3 = arguments.encryptionAlgorithm3;
 		variables.encryptionEncoding3 = arguments.encryptionEncoding3;
+		variables.hmacAlgorithm = arguments.hmacAlgorithm;
+		variables.hmacEncoding = arguments.hmacEncoding;
+
+		// check if we're generating the hmac key from existing encryption keys
+		if( !arguments.generateHmacKey ) {
+			// we are not, use the passed in hmacKey 
+			variables.hmacKey = arguments.hmacKey;
+		// otherwise
+		} else {
+			variables.hmacKey = this.generateHmacKey();
+		}
 
 		return this;
 	}
@@ -209,6 +241,17 @@ component displayname="SecurityService" accessors="true" {
 	}
 
 	/**
+	* @displayname dataHmac
+	* @description I hash and return passed in values based on HMAC
+	* @return      String
+	*/
+	public string function dataHmac( required string input ) {
+
+		return hmac( arguments.input, variables.hmacKey, variables.hmacAlgorithm, variables.hmacEncoding );
+
+	}
+
+	/**
 	* @displayname uberHash
 	* @description I hash and return passed in values based on method and iterations (ACF support)
 	* @return      String
@@ -283,6 +326,12 @@ component displayname="SecurityService" accessors="true" {
 		} else if( dateDiff('n', sessionObj.getLastActionAt(), now() ) GTE application.timeoutMinutes ) {
 
 			// it should have expired, return an empty session object
+			return createObject( 'component', 'model.beans.Session').init();
+
+		// otherwise, ensure that the hmac code matches for this session
+		} else if( len( sessionObj.getHmacCode() ) and dataHmac( arguments.sessionId ) neq sessionObj.getHmacCode() ) {
+
+			// it doesn't match, return an empty session object
 			return createObject( 'component', 'model.beans.Session').init();
 
 		// otherwise
@@ -363,6 +412,7 @@ component displayname="SecurityService" accessors="true" {
 
 		clearUserSession( arguments.sessionObj );
 		arguments.sessionObj.setLastActionAt( now() );
+		arguments.sessionObj.setHmacCode( dataHmac( arguments.sessionObj.getSessionId() ) );
 		setUserSession( arguments.sessionObj );
 
 		return arguments.sessionObj;
@@ -432,6 +482,54 @@ component displayname="SecurityService" accessors="true" {
 
 		return mfaCode;
 
-	}	
+	}
+
+	/**
+	* @displayname generateHmacKey
+	* @description I generate a hashed, base64 string to use as the hmac hashing key based on the existing encryption keys
+	* @return      String
+	*/
+	public function generateHmacKey() {
+
+		// convert existing encryption keys to arrays of characters
+		var keyStruct = { 
+			keyArray1 = listToArray( variables.encryptionKey1, '' ), 
+			keyArray2 = listToArray( variables.encryptionKey2, '' ), 
+			keyArray3 = listToArray( variables.encryptionKey3, '' ) 
+		};
+		var useArray = '';
+		var hmacKey = '';
+		var t = '';
+
+		// check to ensure we're using the smallest of the available keys (when using different algorithms)
+		if( ( arrayLen( keyStruct.keyArray1 ) lte arrayLen( keyStruct.keyArray2 ) ) and ( arrayLen( keyStruct.keyArray1 ) lte arrayLen( keyStruct.keyArray3 ) ) ) {
+			useArray = keyStruct.keyArray1;
+		} else if( ( arrayLen( keyStruct.keyArray2 ) lte arrayLen( keyStruct.keyArray1 ) ) and ( arrayLen( keyStruct.keyArray2 ) lte arrayLen( keyStruct.keyArray3 ) ) ) {
+			useArray = keyStruct.keyArray2;
+		} else if( ( arrayLen( keyStruct.keyArray3 ) lte arrayLen( keyStruct.keyArray1 ) ) and ( arrayLen( keyStruct.keyArray3 ) lte arrayLen( keyStruct.keyArray2 ) ) ) {
+			useArray = keyStruct.keyArray3;
+		}
+
+		// loop through the length of the shortest array
+		for( i = 1; i lte arrayLen( useArray ); i++ ) {
+			// xor the ascii values of key 1 with key 2, and then that with key 3
+			t = bitXor( bitXor( asc( keyStruct.keyArray1[i] ), asc( keyStruct.keyArray2[i] ) ), asc( keyStruct.keyArray3[i] ) );
+			// ensure the value is not zero (should rarely happen, but jic)
+			if( !t ) {
+				// it's zero, set it to a random number (ensures greater complexity)
+				t = randRange( 1, 255 );
+			}
+			// ensure the value is not greater than 255 (should rarely happen, but jic)
+			while( t gt 255 ) {
+				// it is, divide it in half (ensures greater complexity)
+				t = t/2;
+			}
+			// set the character into the hmacKey string
+			hmacKey &= chr( t );
+		}
+
+		// base64 encode the hmacKey (to remove invalid chars)
+		return toBase64( hmacKey );
+	}
 
 }
