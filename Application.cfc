@@ -9,7 +9,7 @@
 component extends="framework.one" {
 
 	this.name = "secure_auth";
-	this.applicationTimeout = CreateTimeSpan(0, 0, 0, 5);
+	this.applicationTimeout = CreateTimeSpan(30, 0, 0, 0);
 	this.sessionManagement = true;
 	this.sessionTimeout = CreateTimeSpan(0, 0, 30, 0); // 30 minutes
 	this.datasource = 'secureauth';
@@ -39,10 +39,9 @@ component extends="framework.one" {
 			encryptionKey3 			= '<key3>',
 			encryptionAlgorithm3 	= 'AES/CBC/PKCS5Padding',
 			encryptionEncoding3 	= 'HEX',
-			hmacKey			= '',
-			hmacAlgorithm		= 'HMACSHA512',
-			hmacEncoding		= 'utf-8',
-			generateHmacKey		= true
+			hmacKey					= generateSecretKey( 'HMACSHA512' ),
+			hmacAlgorithm			= 'HMACSHA512',
+			hmacEncoding			= 'utf-8'
 		);
 
 		// set the name of the cookie to use for session management (*DO NOT USE* cfid, cftoken or jsessionid)

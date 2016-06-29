@@ -51,8 +51,7 @@ component displayname="SecurityService" accessors="true" {
 		string encryptionEncoding3 = '',
 		string hmacKey = '',
 		string hmacAlgorithm = '',
-		string hmacEncoding = '',
-		boolean generateHmacKey = false
+		string hmacEncoding = ''
 		) {
 
 		variables.encryptionKey1 = arguments.encryptionKey1;
@@ -64,17 +63,9 @@ component displayname="SecurityService" accessors="true" {
 		variables.encryptionKey3 = arguments.encryptionKey3;
 		variables.encryptionAlgorithm3 = arguments.encryptionAlgorithm3;
 		variables.encryptionEncoding3 = arguments.encryptionEncoding3;
+		variables.hmacKey = arguments.hmacKey;
 		variables.hmacAlgorithm = arguments.hmacAlgorithm;
 		variables.hmacEncoding = arguments.hmacEncoding;
-
-		// check if we're generating the hmac key from existing encryption keys
-		if( !arguments.generateHmacKey ) {
-			// we are not, use the passed in hmacKey 
-			variables.hmacKey = arguments.hmacKey;
-		// otherwise
-		} else {
-			variables.hmacKey = this.generateHmacKey();
-		}
 
 		return this;
 	}
@@ -459,7 +450,7 @@ component displayname="SecurityService" accessors="true" {
 	}
 
 	/**
-	* @displayname geHeartbeat
+	* @displayname getHeartbeat
 	* @description I generate a random hash of random length for use in authentication (to prevent password disclosure)
 	* @return      String
 	*/
@@ -482,54 +473,6 @@ component displayname="SecurityService" accessors="true" {
 
 		return mfaCode;
 
-	}
-
-	/**
-	* @displayname generateHmacKey
-	* @description I generate a hashed, base64 string to use as the hmac hashing key based on the existing encryption keys
-	* @return      String
-	*/
-	public function generateHmacKey() {
-
-		// convert existing encryption keys to arrays of characters
-		var keyStruct = { 
-			keyArray1 = listToArray( variables.encryptionKey1, '' ), 
-			keyArray2 = listToArray( variables.encryptionKey2, '' ), 
-			keyArray3 = listToArray( variables.encryptionKey3, '' ) 
-		};
-		var useArray = '';
-		var hmacKey = '';
-		var t = '';
-
-		// check to ensure we're using the smallest of the available keys (when using different algorithms)
-		if( ( arrayLen( keyStruct.keyArray1 ) lte arrayLen( keyStruct.keyArray2 ) ) and ( arrayLen( keyStruct.keyArray1 ) lte arrayLen( keyStruct.keyArray3 ) ) ) {
-			useArray = keyStruct.keyArray1;
-		} else if( ( arrayLen( keyStruct.keyArray2 ) lte arrayLen( keyStruct.keyArray1 ) ) and ( arrayLen( keyStruct.keyArray2 ) lte arrayLen( keyStruct.keyArray3 ) ) ) {
-			useArray = keyStruct.keyArray2;
-		} else if( ( arrayLen( keyStruct.keyArray3 ) lte arrayLen( keyStruct.keyArray1 ) ) and ( arrayLen( keyStruct.keyArray3 ) lte arrayLen( keyStruct.keyArray2 ) ) ) {
-			useArray = keyStruct.keyArray3;
-		}
-
-		// loop through the length of the shortest array
-		for( i = 1; i lte arrayLen( useArray ); i++ ) {
-			// xor the ascii values of key 1 with key 2, and then that with key 3
-			t = bitXor( bitXor( asc( keyStruct.keyArray1[i] ), asc( keyStruct.keyArray2[i] ) ), asc( keyStruct.keyArray3[i] ) );
-			// ensure the value is not zero (should rarely happen, but jic)
-			if( !t ) {
-				// it's zero, set it to a random number (ensures greater complexity)
-				t = randRange( 1, 255 );
-			}
-			// ensure the value is not greater than 255 (should rarely happen, but jic)
-			while( t gt 255 ) {
-				// it is, divide it in half (ensures greater complexity)
-				t = t/2;
-			}
-			// set the character into the hmacKey string
-			hmacKey &= chr( t );
-		}
-
-		// base64 encode the hmacKey (to remove invalid chars)
-		return toBase64( hmacKey );
 	}
 
 }
