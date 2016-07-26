@@ -1,0 +1,26 @@
+{
+    "name" : "framework-one-secure-auth",
+    "slug" : "fw1-sa",
+    "version" : "1.0.42",
+    "author" : "Denard Springle <denard.springle@gmail.com>",
+    "location" : "https://github.com/ddspringle/framework-one-secure-auth/archive/master.zip",
+    "Homepage" : "https://github.com/ddspringle/framework-one-secure-auth",
+    "Documentation" : "https://github.com/ddspringle/framework-one-secure-auth",
+    "Repository" : { 
+        "type" : "git", "URL" : "https://github.com/ddspringle/framework-one-secure-auth.git"
+    },
+    "Bugs" : "https://github.com/ddspringle/framework-one-secure-auth/issues",
+    "shortDescription" : "An example fw/1 application with secure authentication and session management functions",
+    "changelog" : "https://github.com/ddspringle/framework-one-secure-auth/commits/master",
+    "type" : "projects",
+    "keywords" : [ "fw1", "framework one", "mvc", "authentication" ],
+    "engines" : [
+        { "type" : "railo", "version" : ">=4.1.x" },
+        { "type" : "lucee", "version" : ">=4.5.x" },
+        { "type" : "adobe", "version" : ">=10.0.0" }
+    ],
+    "defaultEngine" : "lucee",
+    "License" : [
+        { "type" : "Apache 2.0", "URL" : "http://www.apache.org/licenses/LICENSE-2.0" }
+    ]
+}
