@@ -24,7 +24,7 @@ This code was put together for the `ColdFusion: Code Security Best Practices` pr
 
 ## Installing
 
-1. Drop the code into your favorite CFML engine's webroot
+1. Drop the code into your favorite CFML engine's webroot OR install using [CommandBox](https://www.ortussolutions.com/products/commandbox) using the command `box install fw1-sa`
 2. Create a database and generate the user database table (MSSQL SQL provided in the 'database' folder)
 3. Create a datasource for your database in your CFML engine's admin
 4. Configure an object cache, if one is not already defined (Railo/Lucee)
