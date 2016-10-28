@@ -24,7 +24,7 @@ This code has since been expanded multiple times to include additional functiona
 
 ## Compatibility
 
-* Adobe ColdFusion 11+ (now uses some member functions
+* Adobe ColdFusion 11+ (now uses some member functions)
 * Lucee 4.5+
 
 ## Installing
