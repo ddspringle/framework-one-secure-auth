@@ -8,7 +8,7 @@
 
 component extends="framework.one" {
 
-	this.name = "secure_auth";
+	this.name = 'secure_auth';
 	this.applicationTimeout = CreateTimeSpan(30, 0, 0, 0);
 	this.sessionManagement = true;
 	this.sessionTimeout = CreateTimeSpan(0, 0, 30, 0); // 30 minutes
@@ -26,29 +26,75 @@ component extends="framework.one" {
 	* @description I'm run by fw/1 during onApplicationStart() to configure application level settings
 	*/		
 	function setupApplication() {
-		// load the security functions for session management
-		// NOTE: These keys should normally be stored in a secured file on the filesystem and read in by the application
-		// NOTE: This could also be done using DI/AOP instead of loading it into the application scope
-		application.securityService = createObject( 'component', 'model.services.SecurityService').init(
-			encryptionKey1 			= '<key1>',
-			encryptionAlgorithm1 	= 'AES/CBC/PKCS5Padding',
-			encryptionEncoding1 	= 'HEX',
-			encryptionKey2 			= '<key2>',
-			encryptionAlgorithm2 	= 'BLOWFISH/CBC/PKCS5Padding',
-			encryptionEncoding2 	= 'HEX',
-			encryptionKey3 			= '<key3>',
-			encryptionAlgorithm3 	= 'AES/CBC/PKCS5Padding',
-			encryptionEncoding3 	= 'HEX',
-			hmacKey					= generateSecretKey( 'HMACSHA512' ),
-			hmacAlgorithm			= 'HMACSHA512',
-			hmacEncoding			= 'utf-8'
+
+		// load and initialize the SecurityService with keyring path and master key
+		// NOTE: The keyRingPath should be placed in a secure directory *outside* of  
+		// your web root to prevent key disclosure over the internet. 
+		// ex: keyRingPath = '/opt/secure/keyrings/' & hash( 'secure_auth', 'MD5', 'UTF-8', 420 ) & '.bin'
+		// this path should be accessible *only* to the user the CFML application server is
+		// running under and to root/Administrator users
+		application.securityService = new model.services.SecurityService(
+			keyRingPath = expandPath( 'keyrings/' ) & hash( 'secure_auth_keyring', 'MD5', 'UTF-8', 173 ) & '.bin',
+			masterKey = mid( lCase( hash( 'secure_auth_master_key', 'SHA-512', 'UTF-8', 512 ) ), 38, 22 ) & '=='
 		);
 
-		// set the name of the cookie to use for session management (*DO NOT USE* cfid, cftoken or jsessionid)
+		// use the SecurityService to read the encryption keys from disk
+		application.keyRing = application.securityService.readKeyRingFromDisk();
+
+		// check if the keyring is a valid array of keys
+		if( !isArray( application.keyRing ) or !arrayLen( application.keyRing ) ) {
+			// it isn't, try
+			try {
+				// to generate a new keyring file (for new application launch only)
+				// you should throw an error instead of attempting to generate a new
+				// keyring once a keyring has already been established
+				// ex: throw( 'The keyring file could not be found' );
+				application.keyRing = application.securityService.generateKeyRing();
+			// catch any errors
+			} catch ( any e ) {
+				// and dump the error
+				// writeDump( e );
+				// or throw a new error
+				// throw( 'The keyring file could not be found' );
+				// or otherwise log, etc. and abort
+				abort; 
+			}
+		}
+
+		// (re)initialize the SecurityService with the keyring
+		application.securityService = application.securityService.init( 
+			encryptionKey1 			= application.keyRing[1].key,
+			encryptionAlgorithm1 	= application.keyRing[1].alg,
+			encryptionEncoding1 	= application.keyRing[1].enc,
+			encryptionKey2 			= application.keyRing[2].key,
+			encryptionAlgorithm2 	= application.keyRing[2].alg,
+			encryptionEncoding2 	= application.keyRing[2].enc,
+			encryptionKey3 			= application.keyRing[3].key,
+			encryptionAlgorithm3 	= application.keyRing[3].alg,
+			encryptionEncoding3 	= application.keyRing[3].enc,
+			hmacKey					= generateSecretKey( 'HMACSHA512' ),
+			hmacAlgorithm			= 'HMACSHA512',
+			hmacEncoding			= 'UTF-8'
+		);
+
+		// clear the keyring from the application scope
+		structDelete( application, 'keyRing' );
+
+		// set the name of the cookie to use for session management 
+		// (*DO NOT USE* cfid, cftoken or jsessionid)
+		// Obscuring your cookie name using common tracker names
+		// can help throw a would-be hacker off course
+		// ex: __ga_utm_source, __imgur_ref_id, __fb_beacon_id, etc.
 		application.cookieName = '__secure_auth_id';
 
 		// set number of minutes before a session is timed out
 		application.timeoutMinutes = 30; // 30 minutes
+
+		// set the directory where the blocked ip json file is stored
+		// if this file is web accessible you can share your blocked ip's 
+		// with other sites more easily when using the
+		// importBlockedIPFileFromUrl() function of the security service
+		application.blockedIpDir = '/blocked/';
 
 	}
 
@@ -72,8 +118,17 @@ component extends="framework.one" {
 	*/	
 	function setupRequest() {
 
+		// check if this ip address is blocked
+		if( application.securityService.isBlockedIP( CGI.REMOTE_ADDR ) ) {
+			// it is, abort any further processing (helps prevent DDOS, etc.)
+			// you could also redirect here to an HTML page with *no links in the html* 
+			// (bots follow links) if you would prefer to give feedback to the end user 
+			// ex: location( 'botDiscovered.html', 'false', '301' )
+			abort;
+		}
+
 		// check if we're in the 'admin' subsystem
-		if( getSubsystem()  eq 'admin' ) {
+		if( getSubsystem() eq 'admin' ) {
 			// we are, call the security controller's authorize action to perform session management
 			controller( 'admin:security.authorize' );
 			// set HTTP headers to disallow caching of admin pages
@@ -81,7 +136,7 @@ component extends="framework.one" {
 			getPageContext().getResponse().addHeader( 'Pragma', 'no-cache' );
 		// otherwise
 		} else {
-			// we aren't in the admin subsystem, set a paractical age for cache control for performance
+			// we aren't in the admin subsystem, set a practical age for cache control for performance
 			// in seconds (86400 = 1 day)
 			getPageContext().getResponse().addHeader( 'Cache-Control', 'max-age=86400' );
 		}

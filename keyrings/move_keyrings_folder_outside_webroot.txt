@@ -1,0 +1,8 @@
+You *MUST* move the keyrings folder outside of the webroot
+so it is not accessible to the internet
+
+ex: /opt/secure/keyrings/
+
+this path should be accessible *only* to the user the CFML 
+application server is running under and to 
+root/Administrator users

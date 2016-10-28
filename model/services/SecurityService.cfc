@@ -20,23 +20,26 @@ component displayname="SecurityService" accessors="true" {
 	property hmacKey;
 	property hmacAlgorithm;
 	property hmacEncoding;
+	property keyRingPath;
+	property masterKey;
 
 	/**
 	* @displayname init
 	* @description I am the constructor method for SecurityService
-	* @param 	{String} encryptionKey1 I am the encryption key used for pass number 1
-	* @param 	{String} encryptionAlgorithm1 I am the encryption algorithm used for pass number 1
-	* @param 	{String} encryptionEncoding1 I am the encryption encoding used for pass number 1
-	* @param 	{String} encryptionKey2 I am the encryption key used for pass number 2
-	* @param 	{String} encryptionAlgorithm2 I am the encryption algorithm used for pass number 2
-	* @param 	{String} encryptionEncoding2 I am the encryption encoding used for pass number 2
-	* @param 	{String} encryptionKey3 I am the encryption key used for pass number 3
-	* @param 	{String} encryptionAlgorithm3 I am the encryption algorithm used for pass number 3
-	* @param 	{String} encryptionEncoding3 I am the encryption encoding used for pass number 3
-	* @param 	{String} hmacKey I am the key used for hmac hashing
-	* @param 	{String} hmacAlgorithm I am the hashing algorithm used for hmac hashing
-	* @param 	{String} hmacEncoding I am the encoding used for hmac hashing
-	* @param 	{Boolean} generateHmacKey I am a flag to indicate if the service should generate an hmac key from an xor of the existing encryption keys (true), or use the provided hmacKey (false)
+	* @param	encryptionKey1 {String} - I am the encryption key used for pass number 1
+	* @param	encryptionAlgorithm1 {String} - I am the encryption algorithm used for pass number 1
+	* @param	encryptionEncoding1 {String} - I am the encryption encoding used for pass number 1
+	* @param	encryptionKey2 {String} - I am the encryption key used for pass number 2
+	* @param	encryptionAlgorithm2 {String} - I am the encryption algorithm used for pass number 2
+	* @param	encryptionEncoding2 {String} - I am the encryption encoding used for pass number 2
+	* @param	encryptionKey3 {String} - I am the encryption key used for pass number 3
+	* @param	encryptionAlgorithm3 {String} - I am the encryption algorithm used for pass number 3
+	* @param	encryptionEncoding3 {String} - I am the encryption encoding used for pass number 3
+	* @param	hmacKey {String} - I am the key used for hmac hashing
+	* @param	hmacAlgorithm {String} - I am the hashing algorithm used for hmac hashing
+	* @param	hmacEncoding {String} - I am the encoding used for hmac hashing
+	* @param	keyRingPath {String} - I am the path to the keyring file on disk
+	* @param	masterKey {String} - I am the master key used for encryption/decryption of the keyring
 	* @return 	this
 	*/	
 	public function init( 
@@ -51,7 +54,9 @@ component displayname="SecurityService" accessors="true" {
 		string encryptionEncoding3 = '',
 		string hmacKey = '',
 		string hmacAlgorithm = '',
-		string hmacEncoding = ''
+		string hmacEncoding = '',
+		string keyRingPath = '',
+		string masterKey = ''
 		) {
 
 		variables.encryptionKey1 = arguments.encryptionKey1;
@@ -66,17 +71,36 @@ component displayname="SecurityService" accessors="true" {
 		variables.hmacKey = arguments.hmacKey;
 		variables.hmacAlgorithm = arguments.hmacAlgorithm;
 		variables.hmacEncoding = arguments.hmacEncoding;
+		variables.keyRingPath = arguments.keyRingPath;
+		variables.masterKey = arguments.masterKey;
 
 		return this;
 	}
 
+	/* DATA ENCRYPTION
 
-	// DATA ENCRYPTION //
+		This section of the security service provides functions to
+		help manage encrypting values in the application.
+
+		Functions include:
+			encrypting a plain text input value by mode
+
+			Modes include:
+				db - triple-pass encryption for database storage of values
+				repeatable - triple-pass repeatable encryption (for storing usernames)
+				url - single-pass encryption for values passed on the url
+				form - single-pass encryption using a different key for values passed in the form
+				cookie - single-pass encryption using a different key for values passed in cookies
+				master - double-pass encryption of the keyring using CBC and CTR
+
+	*/
 
 	/**
-	* @displayname dataEnc
-	* @description I encrypt passed in values based on scope
-	* @return      String
+	* @displayname 	dataEnc
+	* @description 	I encrypt passed in values based on scope
+	* @param		value {String} required - I am the value to encrypt
+	* @param		mode {String} default: db - I am the mode of encryption to use - one of db, repeatable, url, form, cookie or master
+	* @return		string
 	*/
 	public string function dataEnc( required string value, string mode = 'db' ) {
 		
@@ -84,157 +108,203 @@ component displayname="SecurityService" accessors="true" {
 		var twoPass = '';
 		var lastPass = '';
 		
-		// check if the passed value has length //
+		// check if the passed value has length
 		if( len( arguments.value ) ) {
 		
-			// it does, check if the mode of the encryption is 'db' //
+			// it does, check if the mode of the encryption is 'db'
 			if( findNoCase( 'db', arguments.mode ) ) {
 			
-				// using database encryption, encrypt with the first set of keys and algorithm //
+				// using database encryption, encrypt with the first set of keys and algorithm
 				onepass = encrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
-				// and again with the second set of keys and algorithm //
+				// and again with the second set of keys and algorithm
 				twopass = encrypt( onepass, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
-				// and again with the third set of keys and algorithm //
+				// and again with the third set of keys and algorithm
 				lastPass = encrypt( twopass, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
 				
-			// otherwise, check if the mode of the encryption is 'repeatable' //
+			// otherwise, check if the mode of the encryption is 'repeatable'
 			} else if( findNoCase( 'repeatable', arguments.mode ) ) {
 				
-				// using database encryption, encrypt with the first set of keys and algorithm //
+				// using database encryption, encrypt with the first set of keys and algorithm
 				onepass = encrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
-				// and again with the second set of keys and algorithm //
+				// and again with the second set of keys and algorithm
 				twopass = encrypt( onepass, variables.encryptionKey2,  listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2 );
-				// and again with the third set of keys and algorithm //
+				// and again with the third set of keys and algorithm
 				lastPass = encrypt( twopass, variables.encryptionKey3,  listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3);
 			
-			// otherwise, check if the mode of the encryption is 'url' //
+			// otherwise, check if the mode of the encryption is 'url'
 			} else if( findNoCase( 'url', arguments.mode ) ) {
 				
-				// using url encryption, check if useing BASE64 encoding on the URL key //
+				// using url encryption, check if useing BASE64 encoding on the URL key
 				if( findNoCase( 'BASE64', variables.encryptionEncoding1 ) ) {
 				
-					// encrypt with the first set of keys and repeatable algorithm //
+					// encrypt with the first set of keys and repeatable algorithm
 					lastPass = encrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1);
-					// using BASE64 encoding, URL encode the value //
+					// using BASE64 encoding, URL encode the value
 					lastPass = URLEncodedFormat( lastPass );
 				
-				// otherwise //
+				// otherwise
 				} else {
 				
-					// not BASE64 encoded, encrypt with the first set of keys and algorithm //
+					// not BASE64 encoded, encrypt with the first set of keys and algorithm
 					lastPass = encrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
 				
-				// end checking if useing BASE64 encoding on the URL key //	
-				}	
+				// end checking if useing BASE64 encoding on the URL key	
+				}
+
+			// otherwise, check if the mode of the encryption is 'master'
+			} else if( findNoCase( 'master', arguments.mode ) ) {
+			
+				// using master encryption, encrypt with the master key and second algorithm
+				onePass = encrypt( arguments.value, variables.masterKey, 'AES/CBC/PKCS5Padding', 'HEX' );
+				lastPass = encrypt( onePass, variables.masterKey, 'BLOWFISH/CTR/PKCS5Padding', 'HEX' );
 				
-			// otherwise, check if the mode of the encryption is 'form' //
+			// otherwise, check if the mode of the encryption is 'form'
 			} else if( findNoCase( 'form', arguments.mode ) ) {
 			
-				// using form encryption, encrypt with the second set of keys and algorithm //
+				// using form encryption, encrypt with the second set of keys and algorithm
 				lastPass = encrypt( arguments.value, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
 				
-			// otherwise, check if the mode of the encryption is 'cookie' //
+			// otherwise, check if the mode of the encryption is 'cookie'
 			} else if( findNoCase( 'cookie', arguments.mode ) ) {
 			
-				// using cookie encryption, encrypt with the first set of keys and algorithm //
+				// using cookie encryption, encrypt with the first set of keys and algorithm
 				lastPass = encrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
 			
-			// end checking if the mode of the encryption is 'db', 'url', 'form' or 'cookie' //	
+			// end checking if the mode of the encryption is 'db', 'url', 'form' or 'cookie'	
 			}
 		
-		// end checking if the passed value has length //
+		// end checking if the passed value has length
 		}
 		
-		// return the encrypted value (or null if passed value has no length) //
+		// return the encrypted value (or null if passed value has no length)
 		return lastPass;
 	}
 
-	// DATA DECRYPTION //
+	/* DATA DECRYPTION
+
+		This section of the security service provides functions to
+		help manage decrypting values in the application.
+
+		Functions include:
+			decrypting an encrypted input value by mode
+
+			Modes include:
+				db - triple-pass decryption for values stored in the database
+				repeatable - triple-pass repeatable decryption (for decrypting usernames)
+				url - single-pass decryption for values passed on the url
+				form - single-pass decryption using a different key for values passed in the form
+				cookie - single-pass decryption using a different key for values passed in cookies
+				master - double-pass decryption of the keyring using CBC and CTR
+
+	*/
 
 	/**
-	* @displayname dataDec
-	* @description I decrypt passed in values based on scope
-	* @return      String
+	* @displayname	dataDec
+	* @description	I decrypt passed in values based on scope
+	* @param		value {String} required - I am the value to decrypt
+	* @param		mode {String} default: db - I am the mode of decryption to use - one of db, repeatable, url, form, cookie or master
+	* @return		string
 	*/
 	public string function dataDec( required string value, string mode = 'db' ) {
 
-		// var scope //
+		// var scope
 		var onePass = '';
 		var twoPass = '';
 		var lastPass = '';
 		
-		// check if the passed value has length //
+		// check if the passed value has length
 		if( len( arguments.value ) ) {
 		
-			// it does, check if the mode of the encryption is 'db' //
+			// it does, check if the mode of the encryption is 'db'
 			if( findNoCase( 'db', arguments.mode ) ) {
 	
-				// using database encryption, decrypt with the third set of keys and algorithm //
+				// using database encryption, decrypt with the third set of keys and algorithm
 				var onePass = Decrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
-				// and again with the second set of keys and algorithm //
+				// and again with the second set of keys and algorithm
 				var twoPass = Decrypt( onepass, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
-				// and again with the first set of keys and algorithm //
+				// and again with the first set of keys and algorithm
 				var lastPass = Decrypt( twopass, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
 		
-			// otherwise, check if the mode of the encryption is 'repeatable' //
+			// otherwise, check if the mode of the encryption is 'repeatable'
 			} else if( findNoCase( 'repeatable', arguments.mode ) ) {
 	
-				// using database encryption, decrypt with the third set of keys and algorithm //
+				// using database encryption, decrypt with the third set of keys and algorithm
 				var onePass = Decrypt( arguments.value, variables.encryptionKey3, listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3 );
-				// and again with the second set of keys and algorithm //
+				// and again with the second set of keys and algorithm
 				var twoPass = Decrypt( onepass, variables.encryptionKey2, listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2 );
-				// and again with the first set of keys and algorithm //
+				// and again with the first set of keys and algorithm
 				var lastPass = Decrypt( twopass, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
 			
-			// otherwise, check if the mode of the encryption is 'url' //
+			// otherwise, check if the mode of the encryption is 'url'
 			} else if( findNoCase( 'url', arguments.mode ) ) {
 				
-				// using url encryption, check if useing BASE64 encoding on the URL key //
+				// using url encryption, check if useing BASE64 encoding on the URL key
 				if( findNoCase( 'BASE64', variables.encryptionEncoding1 ) ) {
 				
-					// using BASE64 encoding, URL decode the value //
+					// using BASE64 encoding, URL decode the value
 					arguments.value = URLDecode( arguments.value );
-					// replace spaces with + //
+					// replace spaces with +
 					arguments.value = Replace( arguments.value, chr(32), '+', 'ALL' );
-					// decrypt with the first set of keys and repeatable algorithm //
+					// decrypt with the first set of keys and repeatable algorithm
 					lastPass = Decrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
 				
-				// otherwise //
+				// otherwise
 				} else {
 				
-					// not BASE64 encoded, decrypt with the first set of keys and algorithm //
+					// not BASE64 encoded, decrypt with the first set of keys and algorithm
 					lastPass = Decrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
 				
-				// end checking if useing BASE64 encoding on the URL key //	
-				}			
+				// end checking if useing BASE64 encoding on the URL key	
+				}
 				
-			// otherwise, check if the mode of the encryption is 'form' //
+			// otherwise, check if the mode of the encryption is 'master'
+			} else if( findNoCase( 'master', arguments.mode ) ) {
+			
+				// using master encryption, decrypt with the master key and second algorithm
+				onePass = Decrypt( arguments.value, variables.masterKey, 'BLOWFISH/CTR/PKCS5Padding', 'HEX' );
+				lastPass = Decrypt( onePass, variables.masterKey, 'AES/CBC/PKCS5Padding', 'HEX' );
+				
+			// otherwise, check if the mode of the encryption is 'form'
 			} else if( findNoCase( 'form', arguments.mode ) ) {
 			
-				// using form encryption, decrypt with the second set of keys and algorithm //
+				// using form encryption, decrypt with the second set of keys and algorithm
 				lastPass = Decrypt( arguments.value, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
 				
-			// otherwise, check if the mode of the encryption is 'cookie' //
+			// otherwise, check if the mode of the encryption is 'cookie'
 			} else if( findNoCase( 'cookie', arguments.mode ) ) {
 			
-				// using cookie encryption, decrypt with the first set of keys and algorithm //
+				// using cookie encryption, decrypt with the first set of keys and algorithm
 				lastPass = Decrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
 			
-			// end checking if the mode of the encryption is 'db', 'url', 'form' or 'cookie' //	
+			// end checking if the mode of the encryption is 'db', 'url', 'form' or 'cookie'	
 			}
 		
-		// end checking if the passed value has length //
+		// end checking if the passed value has length
 		}
 
-		// return the decrypted value (or null if passed value has no length) //
+		// return the decrypted value (or null if passed value has no length)
 		return lastPass;
 
 	}
 
+	/* HMAC
+
+		This section of the security service provides functions to
+		help manage keyed-hash method authentication code (HMAC) 
+		requirements for sessions.
+
+		Functions include:
+			generating a signed HMAC value from input using the HMAC
+			key and algorithm given to this security service upon 
+			initialization.
+
+	*/
+
 	/**
-	* @displayname dataHmac
-	* @description I hash and return passed in values based on HMAC
-	* @return      String
+	* @displayname  dataHmac
+	* @description  I hash and return passed in values based on HMAC
+	* @param		input {String} required - I am the string to HMAC
+	* @return		string
 	*/
 	public string function dataHmac( required string input ) {
 
@@ -242,17 +312,35 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
+	/* HASHING
+
+		This section of the security service provides functions to
+		help manage obfuscation with hashing.
+
+		Functions include:
+			generating a hash by passing in the input, method, iterations and case
+			NOTE: This function is deprecated now that both Lucee and ACF support 
+			iterations and this code now requires ACF 11 / Lucee 4.5 or higher
+
+	*/
+
 	/**
-	* @displayname uberHash
-	* @description I hash and return passed in values based on method and iterations (ACF support)
-	* @return      String
+	* @displayname	uberHash
+	* @description	I hash and return passed in values based on method and iterations (ACF support)
+	* @param		input {String} required - I am the string to hash
+	* @param		method {String} default: SHA-384 - I am the encoding to use for this hash
+	* @param		iterations {Numeric} default: 1000 - I am the number of times to has the value
+	* @param		outcase {String} default: lower - I am the case to return the hash in, one of lower or upper
+	* @return		string
 	*/
 	public string function uberHash( required string input, string method = 'SHA-384', numeric iterations = 1000, string outcase = 'lower' ) {
 
+		// use the native hash() function with UTF-8 encoding to encode the input string
 		var output = hash( arguments.input, arguments.method, 'UTF-8', arguments.iterations );
 
 		// check if we're returning lowercase
 		if( findNoCase( 'lower', arguments.outcase ) ) {
+			// we are, set the case of the hash to lowercase
 			output = lCase( output );
 		}
 
@@ -261,46 +349,98 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
+	/* RANDOM PASSWORD
+
+		This section of the security service provides functions to
+		help manage generating random passwords for users (new, reset).
+
+		Functions include:
+			generating a random password of a specified or random length
+
+	*/
 
 	/**
-	* @displayname getRandomPassword
-	* @description I generate a random password of random length
-	* @return      String
+	* @displayname	getRandomPassword
+	* @description	I generate a random password of random length
+	* @param		length {Numeric} default: 0 - I am the length of the password to generate, if not specified then a random length between 12 and 18 characters is chosen
+	* @return		string
 	*/
-	public string function getRandomPassword() {
+	public string function getRandomPassword( numeric length = 0 ) {
 
-		var alpha = 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z';
-		var upperAlpha = uCase( alpha );
-		var numbers = '1,2,3,4,5,6,7,8,9,0';
+		// configure special chars to use
 		var special = '!,@,##,$,%,^,&,*';
-		var length = randRange( 10, 16 );
 		var password = '';
 		var ix = 0;
 		var pattern = '';
 		var char = '';
 
-		for( ix = 1; ix <= length; ix++ ) {
-			pattern = randRange( 1, 4 );
-			if( pattern EQ 1 ) {
-				char = listGetAt( alpha, randRange( 1, listLen( alpha ) ) );
-			} else if( pattern EQ 2 ) {
-				char = listGetAt( upperAlpha, randRange( 1, listLen( upperAlpha ) ) );
-			} else if( pattern EQ 3 ) {				
-				char = listGetAt( numbers, randRange( 1, listLen( numbers ) ) );
-			} else {
-				char = listGetAt( special, randRange( 1, listLen( special ) ) );
-			}
-			password = password & char;
+		// check if a password length was specified
+		if( !arguments.length ) {
+			// it wasn't specified, set a random length
+			arguments.length = randRange( 12, 18 );
 		}
 
+		// loop through the length of the password
+		for( ix = 1; ix <= arguments.length; ix++ ) {
+
+			// choose a random pattern (1 to 4)
+			pattern = randRange( 1, 4 );
+
+			// switch on the pattern of 1 to 4
+			switch( pattern ) {
+				// case 1 - lowercase alpha
+				case 1:
+					// select random lowercase alpha character
+					char = chr( randRange( 97, 122 ) );
+				break;
+
+				// case 2 - uppercase alpha
+				case 2:
+					// select random uppercase alpha character
+					char = chr( randRange( 65, 90 ) );
+				break;
+
+				// case 3 - numeric
+				case 3:
+					// select random numeric character
+					char = chr( randRange( 48, 57 ) );
+				break;
+
+				// case 4 - special
+				case 4:
+					// select random special character from the list
+					char = listGetAt( special, randRange( 1, listLen( special ) ) );
+				break;
+			}
+
+			// add this character to the password
+			password &= char;
+		}
+
+		// return the random password
 		return password;
 
 	}
 
+	/* SESSION MANAGEMENT
+
+		This section of the security service provides functions to
+		help manage logged on user sessions.
+
+		Functions include:
+			checking if a user's session exists in the cache 
+			creating a new user session after authentication 
+			storing, clearing, and updating a user's session object
+			generating and rotating a user's session id
+			setting and retreiving the encrypted session id used in cookies
+
+	*/
+
 	/**
-	* @displayname checkUserSession
-	* @description I retrieve the users session object from cache, and return it if it exists, else I return a blank session object
-	* @return      Session
+	* @displayname	checkUserSession
+	* @description	I retrieve the users session object from cache, and return it if it exists, else I return a blank session object
+	* @param		sessionId {String} required - I am the session id to check
+	* @return		any
 	*/
 	public any function checkUserSession( required string sessionId ) {
 
@@ -311,19 +451,19 @@ component displayname="SecurityService" accessors="true" {
 		if( isNull( sessionObj ) ) {
 
 			// it isn't, return an empty session object
-			return createObject( 'component', 'model.beans.Session').init();
+			return new model.beans.Session();
 
 		// otherwise, ensure the session shouldn't have already expired (30 mins)
 		} else if( dateDiff('n', sessionObj.getLastActionAt(), now() ) GTE application.timeoutMinutes ) {
 
 			// it should have expired, return an empty session object
-			return createObject( 'component', 'model.beans.Session').init();
+			return new model.beans.Session();
 
 		// otherwise, ensure that the hmac code matches for this session
 		} else if( len( sessionObj.getHmacCode() ) and dataHmac( arguments.sessionId ) neq sessionObj.getHmacCode() ) {
 
 			// it doesn't match, return an empty session object
-			return createObject( 'component', 'model.beans.Session').init();
+			return new model.beans.Session();
 
 		// otherwise
 		} else {
@@ -336,13 +476,18 @@ component displayname="SecurityService" accessors="true" {
 	}
 
 	/**
-	* @displayname createUserSession
-	* @description I generate and resturn a session object based on passed in values
-	* @return      Session
+	* @displayname	createUserSession
+	* @description	I generate and return a session object based on passed in values
+	* @param		userId {Numeric} required - I am the user id of the user to generate a session for
+	* @param		role {Numeric} required - I am the role assigned to the user
+	* @param		firstName {String} required - I am the first name of the user
+	* @param		lastName {String} required - I am the last name of the user
+	* @return		any
 	*/
 	public any function createUserSession( required numeric userId, required numeric role, required string firstName, required string lastName ) {
 
-		var sessionObj = createObject( 'component', 'model.beans.Session').init(
+		// create a session object based on the passed in arguments
+		var sessionObj = new model.beans.Session(
 			sessionId = getSessionId(),
 			userId = arguments.userId,
 			role = arguments.role,
@@ -353,125 +498,529 @@ component displayname="SecurityService" accessors="true" {
 			lastActionAt = now()
 		);
 
+		// save the user session to the cache
 		setUserSession( sessionObj );
 
+		// and return the session object
 		return sessionObj;
 
 	}
 
 	/**
-	* @displayname setUserSession
-	* @description I store a sessio0n object in the cache
-	* @return      Void
+	* @displayname	setUserSession
+	* @description	I store a sessio0n object in the cache
+	* @param		sessionObj {Any} required - I am the session object to store in the cache
+	* @return		void
 	*/
 	public void function setUserSession( required any sessionObj ) {
 
+		// put the user's session object into the cache
 		cachePut( uberHash( arguments.sessionObj.getSessionId(), 'MD5', 3000 ), arguments.sessionObj, createTimeSpan( 0, 0, application.timeoutMinutes, 0), createTimeSpan( 0, 0, application.timeoutMinutes, 0 ) );
 
 	}
 
 	/**
-	* @displayname clearUserSession
-	* @description I remove a sessio0n object from the cache
-	* @return      Void
+	* @displayname	clearUserSession
+	* @description	I remove a sessio0n object from the cache
+	* @param		sessionObj {Any} required - I am the session object to clear from the cache
+	* @return		void
 	*/
 	public void function clearUserSession( required any sessionObj ) {
 
+		// remove the user's session object from the cache
 		cacheRemove( uberHash( arguments.sessionObj.getSessionId(), 'MD5', 3000 ) );
 
 	}
 
 	/**
-	* @displayname rotateUserSession
-	* @description I update the session id of a session object 
-	* @return      Session
+	* @displayname	rotateUserSession
+	* @description	I update the session id of a session object 
+	* @param		sessionObj {Any} required - I am the session object to rotate the id for
+	* @return		any
 	*/
 	public any function rotateUserSession( required any sessionObj ) {
 
+		// assign a new session id to the session object
 		arguments.sessionObj.setSessionId( getSessionId() );
 
-		return arguments.sessionObj;
-
-	}
-
-    /**
-    * @displayname updateUserSession
-    * @description I update the last action at of a session object, remove the old session and save the new one 
-    * @return      Session
-    */
-	public any function updateUserSession( required any sessionObj ) {
-
-		clearUserSession( arguments.sessionObj );
-		arguments.sessionObj.setLastActionAt( now() );
-		arguments.sessionObj.setHmacCode( dataHmac( arguments.sessionObj.getSessionId() ) );
-		setUserSession( arguments.sessionObj );
-
+		// and return the session object
 		return arguments.sessionObj;
 
 	}
 
 	/**
-	* @displayname getSessionId
-	* @description I generate a random hashed session id
-	* @return      String
+	* @displayname	updateUserSession
+	* @description	I update the last action at of a session object, remove the old session and save the new one 
+	* @param		sessionObj {Any} required - I am the session object to update
+	* @return		any
+	*/
+	public any function updateUserSession( required any sessionObj ) {
+
+		// clear out the existing user's session
+		clearUserSession( arguments.sessionObj );
+		// set the last action time to now
+		arguments.sessionObj.setLastActionAt( now() );
+		// set the hmac code for the session cookie
+		arguments.sessionObj.setHmacCode( dataHmac( arguments.sessionObj.getSessionId() ) );
+		// save the session to the cache
+		setUserSession( arguments.sessionObj );
+
+		// and return the session object
+		return arguments.sessionObj;
+
+	}
+
+	/**
+	* @displayname	getSessionId
+	* @description	I generate a random hashed session id
+	* @return		string
 	*/
 	public string function getSessionId() {
 
+		// generate a random session id hash
 		var sessionId = uberHash( createUUID() & now(), 'SHA-384', 2000 );
 
+		// and return the session id
 		return sessionId;
 
 	}
 
 	/**
-	* @displayname setSessionIdForCookie
-	* @description I encrypt the session id of a session object for cookie storage
-	* @return      String
+	* @displayname	setSessionIdForCookie
+	* @description	I encrypt the session id of a session object for cookie storage
+	* @param		sessionId {Any} required - I am the session id to get for the cookie
+	* @return		string
 	*/
 	public string function setSessionIdForCookie( required string sessionId ) {
 
+		// encrypt the session id for cookie storage
 		var cookieId = dataEnc( arguments.sessionId, 'cookie' );
 
+		// and return the encrypted id
 		return cookieId;
 
 	}
 
 	/**
-	* @displayname getSessionIdFromCookie
-	* @description I decrypt the session id of a session object from cookie storage
-	* @return      String
+	* @displayname	getSessionIdFromCookie
+	* @description	I decrypt the session id of a session object from cookie storage
+	* @param		cookieId {Any} required - I am the cookie id to get the session id from
+	* @return		string
 	*/
 	public string function getSessionIdFromCookie( required string cookieId ) {
 
+		// get the value of the session id from the cookie
 		var sessionId = dataDec( arguments.cookieId, 'cookie' );
 
+		// and return the session id
 		return sessionId;
 
 	}
 
+	/* AUTHENTICATION
+
+		This section of the security service provides functions to
+		help manage authentication with the application.
+
+		Functions include:
+			generating a random heartbeat used to hash passwords during login
+			generating a random two-factor auth code to be sent to the user when using 2FA
+
+	*/
+
 	/**
-	* @displayname getHeartbeat
-	* @description I generate a random hash of random length for use in authentication (to prevent password disclosure)
-	* @return      String
+	* @displayname	getHeartbeat
+	* @description	I generate a random hash of random length for use in authentication (to prevent password disclosure)
+	* @return		string
 	*/
 	public string function getHeartbeat() {
 
+		// get a random value for the heartbeat of the login form
 		var heartbeat = lCase( left( uberHash( now() & createUUID() & randRange( 1000, 9999 ), 'SHA-384', randRange( 1000, 3000 ) ), randRange( 32, 64 ) ) );
 
+		// and return the heartbeat value
 		return heartbeat;
 
 	}
 
 	/**
-	* @displayname getMfaCode
-	* @description I generate a random hashed two-factor authentication code of a random length
-	* @return      String
+	* @displayname	getMfaCode
+	* @description	I generate a random hashed two-factor authentication code of a random length
+	* @return		string
 	*/
 	public string function getMfaCode() {
 
+		// get a random auth code of a random length for multi-factor authentication
 		var mfaCode = left( uberHash( createUUID() & now(), 'MD5', RandRange(1000,3000) ), randRange( 4, 8 ) );
 
+		// and return the mfa code
 		return mfaCode;
+
+	}
+
+	/* CSRF
+
+		This section of the security service provides functions to
+		help manage Cross-Site Request Forgery (CSRF) attacks.
+
+		Functions include:
+			generating a random token key used as the session variable 
+			used to store the token in when using 
+			CSRFGenerateToken( [token key] [,forceNew] )
+
+	*/
+
+	/**
+	* @displayname	generateTokenKey
+	* @description	I generate a random value to use as the CSRF token key
+	* @return		string
+	*/
+	public string function generateTokenKey() {
+		// return randomly generated, random length valid variable (key) name
+		return chr( randRange( 97, 122 ) ) & left( lCase( uberHash( createUUID() & randRange( 1000, 100000 ), 'SHA-384', randRange( 25, 150 ) ) ), randRange( 31, 63 ) );
+	}
+
+	/* KEYRING MANAGEMENT
+
+		This section of the security service provides functions to
+		help manage the security (encryption) keys used by the application.
+
+		Functions include:
+			generating a new random keyring (for new applications only)
+			reading and writing the keyring file from the disk (on app start/restart)
+
+	*/
+
+	/**
+	* @displayname	generateKeyRing
+	* @description	I generate a new random keyring and save it to disk
+	* @param		keyLength {Numeric} default: 128 - I am the keylength to use when generating encryption keys (128 or 256 are supported)
+	* @return		array
+	*/
+	public array function generateKeyRing( numeric keyLength = 128 ) {
+
+		// set up a new array to hold the keyring
+		variables.keyRing = arrayNew(1);
+
+		// loop 3 times to generate 3 keys
+		for( i=1; i<=3; i++ ) {
+			// randomly choose between AES and BLOWFISH algorithms for this key
+			variables.algorithm = ( ( randRange( 0, 1 ) ) ? 'AES' : 'BLOWFISH' );
+
+			// set up a struct to hold the key
+			variables.keyStruct = {};
+			// generate an encryption key based on the algorithm
+			variables.keyStruct['key'] = generateSecretKey( variables.algorithm, arguments.keyLength );
+			// set the algoritm to use CBC/PKCS5Padding
+			variables.keyStruct['alg'] = variables.algorithm & '/CBC/PKCS5Padding';
+			// set the encoding to HEX
+			variables.keyStruct['enc'] = 'HEX';
+
+			// add this key to the keyring
+			variables.keyRing[i] = variables.keyStruct;
+		}
+
+		// save the keyring to disk
+		saveKeyRingToDisk( variables.keyRing );
+
+		// and return the keyring
+		return variables.keyRing;
+
+	}
+
+	/**
+	* @displayname	readKeyRingFromDisk
+	* @description	I read the keyRing from disk
+	* @return		array
+	*/
+	public array function readKeyRingFromDisk() {
+
+		// check if the keyring file exists
+		if( !fileExists( variables.keyRingPath ) ) {
+
+			// it doesn't exist, return an empty array
+			return arrayNew(1);
+
+		}
+
+		// read in the binary data from disk
+		variables.binaryJson = fileReadBinary( variables.keyRingPath );
+
+		// convert from binary to string data
+		variables.encJson = charsetEncode( variables.binaryJson, "utf-8" );
+
+		// decrypt the string data into JSON with the master key
+		variables.jsonArray = dataDec( variables.encJson, 'master' );
+
+		// and return the JSON as an array
+		return deserializeJSON( variables.jsonArray );
+
+	}
+
+	/**
+	* @displayname	saveKeyRingToDisk
+	* @description	I save the keyRing to disk
+	* @param		keyRing {Array} I am the Key Ring array
+	* @return		void
+	*/
+	private void function saveKeyRingToDisk( required array keyRing ) {
+
+		// serialize the keyring into JSON
+		variables.jsonArray = serializeJSON( arguments.keyRing );
+
+		// encrypt the JSON with the master key
+		variables.encJson = dataEnc( variables.jsonArray, 'master' );
+
+		// convert the encrypted data to binary
+		variables.binaryJson = charsetDecode( variables.encJson, "utf-8" );
+
+		// write the keyring file to disk
+		fileWrite( variables.keyRingPath, variables.binaryJson );
+
+	}
+
+	/* IP BLOCKING 
+
+		This section of the security service provides functions to
+		help manage blocking of hackers/bots by IP address.
+
+		Functions include:
+			checking if an IP is on the blocked IP list
+			adding and removing IP's from the blocked IP list
+			reading and writing the blocked IP list to disk
+			importing blocked ip lists from other hosts via http
+	
+	*/
+
+	/**
+	* @displayname	isBlockedIp
+	* @description	I parse the blocked ip array and determine if the passed ip is blocked
+	* @param		ipAddress {String} required - I am the ip address to check
+	* @param		blockReserved {Boolean} default: false - I am a flag to determine if reserved (internal) ip addresses should be blocked (10.x.x.x, 192.168.x.x, etc. )
+	* @return 		boolean
+	*/
+	public boolean function isBlockedIP( required string ipAddress, boolean blockReserved = false ) {
+
+		// get blocked IP's from the cache
+		var blockedIpArr = cacheGet( uberHash( 'blockedIpArr', 'MD5', 120 ) );
+		var blockedIp = '';
+
+		if( arguments.blockReserved ) {
+			// check if the ip address is a 10.x.x.x address
+			if( listFirst( arguments.ipAddress, '.') eq 10 ) {
+				// it is, return true
+				return true;
+			// otherwise, check if it's a 127.0.0.x address, but not 127.0.0.1
+			} else if( listFirst( arguments.ipAddress, '.') eq 127 and !argument.ipAddress eq '127.0.0.1' ) {
+				// it is, return true
+				return true;
+			// otherwise, check if it's a 172.16-31.x.x address
+			} else if( listFirst( arguments.ipAddress, '.') eq 172 and listFind( '16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31', listGetAt( arguments.ipAddress, 2, '.' ) ) ) {
+				// it is, return true
+				return true;
+			// otherwise, check if it's a 192.168.x.x address
+			} else if( listFirst( arguments.ipAddress, '.') eq 192 and listGetAt( arguments.ipAddress, 2, '.' ) eq 168 ) {
+				// it is, return true
+				return true;
+			}
+		}
+
+		// check if the cached version of the blocked IP array exists
+		if( isNull( blockedIpArr ) ) {
+			// it doesn't, read in the blocked ip file
+			blockedIpArr = readBlockedIPFileFromDisk();
+			// and save the blocked ip array to the cache
+			cachePut( uberHash( 'blockedIpArr', 'MD5', 120 ), blockedIpArr, createTimeSpan( 30, 0, 0, 0 ), createTimeSpan( 15, 0, 0, 0 ) );
+		}
+
+		// loop through the blocked ip array
+		for( blockedIp in blockedIpArr ) {
+			// and check if this ip address exists in the array
+			if( blockedIp.ipAddress eq arguments.ipAddress ) {
+				// it does, so it is blocked, return true
+				return true;
+			}
+		}
+
+		// ip address was not found in the array, return false
+		return false;
+	}
+
+	/**
+	* @displayname	addBlockedIp
+	* @description	I add an ip address to the blocked ip array
+	* @param		ipAddress {String} required - I am the ip address to add
+	* @param		reason {String} - I am the reason why this IP is being blocked
+	* @return		void
+	*/
+	public void function addBlockedIP( required string ipAddress, string reason = '' ) {
+
+		// get blocked IP's from the cache
+		var blockedIpArr = cacheGet( uberHash( 'blockedIpArr', 'MD5', 120 ) );
+		var blockedIp = '';
+		var found = false;
+
+		// check if the cached version of the blocked IP array exists
+		if( isNull( blockedIPs ) ) {
+			// it doesn't, read in the blocked ip file
+			blockedIpArr = readBlockedIPFileFromDisk();
+		}
+
+		// loop through the blocked ip array
+		for( blockedIp in blockedIpArr ) {
+			// check if this ip address exists in the blocked ip list
+			if( blockedIp.ipAddress eq arguments.ipAddress ) {
+				// it does, set found to true
+				found = true;
+			}
+		}
+
+		// check if the ip address was already found in the array
+		if( !found ) {
+
+			// it wasn't found, add it to the array
+			blockedIpArr.append( {
+				ipAddress = arguments.ipAddress,
+				timestamp = now(),
+				reason = arguments.reason
+			} );
+
+			// remove the existing cached blocked ip array
+			cacheRemove( uberHash( 'blockedIpArr', 'MD5', 120 ) );
+
+			// and save the blocked ip array to the cache
+			cachePut( uberHash( 'blockedIpArr', 'MD5', 120 ), blockedIpArr, createTimeSpan( 30, 0, 0, 0 ), createTimeSpan( 15, 0, 0, 0 ) );
+
+			// save the blocked ip's as a json file
+			saveBlockedIPFileToDisk( blockedIpArr );
+
+		}
+
+	}
+
+	/**
+	* @displayname	removeBlockedIp
+	* @description	I remove an ip address from the blocked ip array
+	* @param		ipAddress {String} required - I am the ip address to remove
+	* @return		void
+	*/
+	public void function removeBlockedIP( required string ipAddress ) {
+
+		// get blocked IP's from the cache
+		var blockedIpArr = cacheGet( uberHash( 'blockedIpArr', 'MD5', 120 ) );
+		var blockedIp = '';
+		var ix = 0;
+		var found = false;
+
+		// check if the cached version of the blocked IP array exists
+		if( isNull( blockedIPs ) ) {
+			// it doesn't, read in the blocked ip file
+			blockedIpArr = readBlockedIPFileFromDisk();
+		}
+
+		// loop through the blocked ip array
+		for( blockedIp in blockedIpArr ) {
+			// increase the array index
+			ix++;
+			// check if this ip address exists in the blocked ip list
+			if( blockedIp.ipAddress eq arguments.ipAddress ) {
+				// it does, remove the element from the array
+				blockedIpArr.deleteAt( ix );
+				// and set found to true
+				found = true;
+			}
+		}
+
+		// check if the ip address was found
+		if( found ) {
+
+			// remove the existing cached blocked ip array
+			cacheRemove( uberHash( 'blockedIpArr', 'MD5', 120 ) );
+
+			// and save the blocked ip array to the cache
+			cachePut( uberHash( 'blockedIpArr', 'MD5', 120 ), blockedIpArr, createTimeSpan( 30, 0, 0, 0 ), createTimeSpan( 15, 0, 0, 0 ) );
+
+			// save the blocked ip's as a json file
+			saveBlockedIPFileToDisk( blockedIpArr );
+
+		}
+	}
+
+	/**
+	* @displayname	saveBlockedIPFileToDiskToDisk
+	* @description	I convert the blocked ip array into json and save it to disk
+	* @param		blockedIpArr {Array} required - I am the blocked ip array to save
+	* @return		void
+	*/
+	public void function saveBlockedIPFileToDisk( required array blockedIpArr ) {
+
+		// convert the array to json
+		var blockedIpJson = serializeJSON( arguments.blockedIpArr );
+		// check if the blocked ip file exists
+		if( fileExists( expandPath( application.blockedIpDir ) & 'blocked_ips.json' ) ) {
+			// it does, delete the existing file
+			fileDelete( expandPath( application.blockedIpDir ) & 'blocked_ips.json' );
+		}
+		// write the JSON to disk
+		fileWrite( expandPath( application.blockedIpDir ) & 'blocked_ips.json', blockedIpJson, 'UTF-8' );
+
+	}
+
+	/**
+	* @displayname	readBlockedIPFileFromDisk
+	* @description	I read the blocked ip json from disk and convert it into an array
+	* @return		array
+	*/
+	public array function readBlockedIPFileFromDisk() {
+
+		var blockedIpJson = '';
+
+		// check if the blocked ip file exists
+		if( fileExists( expandPath( application.blockedIpDir ) & 'blocked_ips.json' ) ) {
+			// it does, read in the JSON
+			blockedIpJson = fileRead( expandPath( application.blockedIpDir ) & 'blocked_ips.json', 'UTF-8' );
+			// and return an array of the JSON data
+			return deserializeJSON( blockedIpJson );
+		}
+
+		// file does not exist, return an empty array
+		return arrayNew(1);
+
+	}
+
+	/**
+	* @displayname	importBlockedIPFileFromUrl
+	* @description	I make an http call to a remote blocked_ips.json file and add them to our local blocked ip file
+	* @param		importUrl {String} required - I am the FQDN URL to the blocked_ips.json file on the remote server (ex: https://domain.com/blocked/blocked_ips.json)
+	* @return		array
+	*/
+	public void function importBlockedIPFileFromUrl( required string importUrl ) {
+
+		var httpService = new http(); 
+		var blockedIpArr = '';
+		var blockedIp = '';
+
+		// try to perform the import
+		try {
+
+			// set up the http attributes
+			httpService.setMethod( 'GET' ); 
+			httpService.setCharset( 'UTF-8' ); 
+			httpService.setUrl( arguments.importUrl );
+
+			// convert the returned JSON into an array
+			blockedIpArr = deserializeJSON( httpService.send().getPrefix().fileContent );
+
+			// loop through the array
+			for( blockedIp in blockedIpArr ) {
+				// and add each ip from the remote JSON file to our local array
+				addBlockedIP( blockedIp.ipAddress, blockedIp.reason );
+			}
+
+		// catch any errors (e.g. bad URL, network issues, etc.)
+		} catch( any e ) {
+			// and fail gracefully (you may wish to log here as well)
+		}
 
 	}
 

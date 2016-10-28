@@ -14,8 +14,13 @@ This project is an example [fw/1](https://github.com/framework-one/fw1) applicat
 * Stores user data in encrypted format in the database
 * Default CBC/PKCS5Padding defined for encryption algorithms
 * Includes HTTP security headers designed to reduce attack surface
+* NEW! Uses keyring stored on disk to load encryption keys instead of hard-coded in the Application.cfc
+* NEW! Includes functions for reading, writing and generating a random keyring file
+* NEW! Includes functions for checking for, adding, removing and importing blocked IP's
 
 This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and is a good basic starting point if you need to create a secure application using fw/1.
+
+This code has since been expanded multiple times to include additional functionality not shown during the initial presentation. More details on how (and why) these security functions work and are important can be gleaned from reading the ColdFusion Security documents on [CFDocs](http://cfdocs.org/security) or from reviewing the SecurityService.cfc in /model/services/ which has been expanded for content.
 
 ## Compatibility
 
@@ -28,7 +33,7 @@ This code was put together for the `ColdFusion: Code Security Best Practices` pr
 2. Create a database and generate the user database table (MSSQL SQL provided in the 'database' folder)
 3. Create a datasource for your database in your CFML engine's admin
 4. Configure an object cache, if one is not already defined (Railo/Lucee)
-5. Modify encryption keys/algorithms/encoding in Application.cfc (use [generateSecretKey()](http://cfdocs.org/generatesecretkey) (or http://www.dvdmenubacks.com/key.cfm) to generate keys)
+5. Modify encryption keyring and master key location in Application.cfc
 6. Modify cookieName and timeoutSession variables in Application.cfc
 7. Browse to webroot and enjoy!
 
