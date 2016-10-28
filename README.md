@@ -39,7 +39,7 @@ This code has since been expanded multiple times to include additional functiona
 
 ## Demo
 
-**NOTE:** Demo servers are down temporarily [You can view this code live at https://sa.vsgcom.net/]
+You can view this code live at https://sa.vsgcom.net/
 
 ## Other implementations
 
