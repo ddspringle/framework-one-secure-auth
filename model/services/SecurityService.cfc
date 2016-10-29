@@ -858,6 +858,7 @@ component displayname="SecurityService" accessors="true" {
 		// get blocked IP's from the cache
 		var blockedIpArr = cacheGet( uberHash( 'blockedIpArr', 'MD5', 120 ) );
 		var blockedIp = '';
+		var ipRecord = structNew();
 		var found = false;
 
 		// check if the cached version of the blocked IP array exists
@@ -878,12 +879,13 @@ component displayname="SecurityService" accessors="true" {
 		// check if the ip address was already found in the array
 		if( !found ) {
 
-			// it wasn't found, add it to the array
-			blockedIpArr.append( {
-				ipAddress = arguments.ipAddress,
-				timestamp = now(),
-				reason = arguments.reason
-			} );
+			// it wasn't found, create a json friendly struct
+			ipRecord[ 'ipAddress' ] = arguments.ipAddress;
+			ipRecord[ 'timestamp' ] = now();
+			ipRecord[ 'reason' ] = arguments.reason;
+
+			// and add it to the array
+			blockedIpArr.append( ipRecord );
 
 			// remove the existing cached blocked ip array
 			cacheRemove( uberHash( 'blockedIpArr', 'MD5', 120 ) );
@@ -1015,6 +1017,287 @@ component displayname="SecurityService" accessors="true" {
 			for( blockedIp in blockedIpArr ) {
 				// and add each ip from the remote JSON file to our local array
 				addBlockedIP( blockedIp.ipAddress, blockedIp.reason );
+			}
+
+		// catch any errors (e.g. bad URL, network issues, etc.)
+		} catch( any e ) {
+			// and fail gracefully (you may wish to log here as well)
+		}
+
+	}
+
+	/* IP WATCHING 
+
+		This section of the security service provides functions to
+		help manage watching of potential hackers/bots by IP address.
+
+		Functions include:
+			checking if an IP is on the watched IP list
+			adding and removing IP's from the watched IP list
+			increasing the total times an ip has been flagged for potential abuse
+			reading and writing the watched IP list to disk
+			importing watched ip lists from other hosts via http
+	
+	*/
+
+	/**
+	* @displayname	getWatchedIp
+	* @description	I parse the watched ip array and determine if the passed ip is being watched
+	* @param		ipAddress {String} required - I am the ip address to check
+	* @return 		struct
+	*/
+	public struct function getWatchedIp( required string ipAddress ) {
+
+		// get watched IP's from the cache
+		var watchedIpArr = cacheGet( uberHash( 'watchedIpArr', 'MD5', 57 ) );
+		var watchedIp = '';
+		var returnStruct = structNew();
+
+		// set defaults for watched return struct
+		returnStruct.isWatched = false;
+		returnStruct.totalCount = 0;
+
+		// check if the cached version of the watched IP array exists
+		if( isNull( watchedIpArr ) ) {
+			// it doesn't, read in the watched ip file
+			watchedIpArr = readWatchedIpFileFromDisk();
+			// and save the watched ip array to the cache
+			cachePut( uberHash( 'watchedIpArr', 'MD5', 57 ), watchedIpArr, createTimeSpan( 30, 0, 0, 0 ), createTimeSpan( 15, 0, 0, 0 ) );
+		}
+
+		// loop through the watched ip array
+		for( watchedIp in watchedIpArr ) {
+			// and check if this ip address exists in the array
+			if( watchedIp.ipAddress eq arguments.ipAddress ) {
+				// it does, so it is watched, set return struct details
+				returnStruct.isWatched = true;
+				returnStruct.totalCount = watchedIp.totalCount
+			}
+		}
+
+		// and return the return struct
+		return returnStruct;
+	}
+
+	/**
+	* @displayname	addWatchedIp
+	* @description	I add an ip address to the watched ip array
+	* @param		ipAddress {String} required - I am the ip address to add
+	* @param		reason {String} - I am the reason why this IP is being watched
+	* @return		void
+	*/
+	public void function addWatchedIp( required string ipAddress, string reason = '' ) {
+
+		// get watched IP's from the cache
+		var watchedIpArr = cacheGet( uberHash( 'watchedIpArr', 'MD5', 57 ) );
+		var watchedIp = '';
+		var ipRecord = structNew();
+		var found = false;
+
+		// check if the cached version of the watched IP array exists
+		if( isNull( watchedIPs ) ) {
+			// it doesn't, read in the watched ip file
+			watchedIpArr = readWatchedIpFileFromDisk();
+		}
+
+		// loop through the watched ip array
+		for( watchedIp in watchedIpArr ) {
+			// check if this ip address exists in the watched ip list
+			if( watchedIp.ipAddress eq arguments.ipAddress ) {
+				// it does, set found to true
+				found = true;
+			}
+		}
+
+		// check if the ip address was already found in the array
+		if( !found ) {
+
+			// it wasn't found, create a json friendly struct
+			ipRecord[ 'ipAddress' ] = arguments.ipAddress;
+			ipRecord[ 'timestamp' ] = now();
+			ipRecord[ 'reason' ] = arguments.reason;
+			ipRecord[ 'totalCount' ] = 1;
+
+			// and add it to the array
+			watchedIpArr.append( ipRecord );
+
+			// log hack attempt
+			writeLog( text = 'ip: ' & arguments.ipAddress & ' reason: ' & arguments.reason & ' timestamp: ' & now() & ' count: 1', type = 'warning', file = 'abuse' );
+
+			// remove the existing cached watched ip array
+			cacheRemove( uberHash( 'watchedIpArr', 'MD5', 57 ) );
+
+			// and save the watched ip array to the cache
+			cachePut( uberHash( 'watchedIpArr', 'MD5', 57 ), watchedIpArr, createTimeSpan( 30, 0, 0, 0 ), createTimeSpan( 15, 0, 0, 0 ) );
+
+			// save the watched ip's as a json file
+			saveWatchedIpFileToDisk( watchedIpArr );
+
+		}
+
+	}
+
+	/**
+	* @displayname	increaseWatchedIpCount
+	* @description	I increase the total times an ip has been flagged for potential abuse
+	* @param		ipAddress {String} required - I am the ip address to add
+	* @param		reason {String} - I am the reason why this IP is being watched
+	* @return		void
+	*/
+	public void function increaseWatchedIpCount( required string ipAddress, string reason = '' ) {
+		
+		// get watched IP's from the cache
+		var watchedIpArr = cacheGet( uberHash( 'watchedIpArr', 'MD5', 57 ) );
+		var watchedIp = '';
+		var count = 0;
+
+		// check if the cached version of the watched IP array exists
+		if( isNull( watchedIPs ) ) {
+			// it doesn't, read in the watched ip file
+			watchedIpArr = readWatchedIpFileFromDisk();
+		}
+
+		// loop through the watched ip array
+		for( watchedIp in watchedIpArr ) {
+			// check if this ip address exists in the watched ip list
+			if( watchedIp.ipAddress eq arguments.ipAddress ) {
+				// it does, increase the counter of this record
+				watchedIp.totalCount++;
+				count = watchedIp.totalCount;
+			}
+		}
+
+		// log hack attempt
+		writeLog( text = 'ip: ' & arguments.ipAddress & ' reason: ' & arguments.reason & ' timestamp: ' & now() & ' count: ' & count, type = 'warning', file = 'abuse' );
+
+		// remove the existing cached watched ip array
+		cacheRemove( uberHash( 'watchedIpArr', 'MD5', 57 ) );
+
+		// and save the watched ip array to the cache
+		cachePut( uberHash( 'watchedIpArr', 'MD5', 57 ), watchedIpArr, createTimeSpan( 30, 0, 0, 0 ), createTimeSpan( 15, 0, 0, 0 ) );
+
+		// save the watched ip's as a json file
+		saveWatchedIpFileToDisk( watchedIpArr );
+			
+	}
+
+	/**
+	* @displayname	removeWatchedIp
+	* @description	I remove an ip address from the watched ip array
+	* @param		ipAddress {String} required - I am the ip address to remove
+	* @return		void
+	*/
+	public void function removeWatchedIp( required string ipAddress ) {
+
+		// get watched IP's from the cache
+		var watchedIpArr = cacheGet( uberHash( 'watchedIpArr', 'MD5', 57 ) );
+		var watchedIp = '';
+		var ix = 0;
+		var found = false;
+
+		// check if the cached version of the watched IP array exists
+		if( isNull( watchedIPs ) ) {
+			// it doesn't, read in the watched ip file
+			watchedIpArr = readWatchedIpFileFromDisk();
+		}
+
+		// loop through the watched ip array
+		for( watchedIp in watchedIpArr ) {
+			// increase the array index
+			ix++;
+			// check if this ip address exists in the watched ip list
+			if( watchedIp.ipAddress eq arguments.ipAddress ) {
+				// it does, remove the element from the array
+				watchedIpArr.deleteAt( ix );
+				// and set found to true
+				found = true;
+			}
+		}
+
+		// check if the ip address was found
+		if( found ) {
+
+			// remove the existing cached watched ip array
+			cacheRemove( uberHash( 'watchedIpArr', 'MD5', 57 ) );
+
+			// and save the watched ip array to the cache
+			cachePut( uberHash( 'watchedIpArr', 'MD5', 57 ), watchedIpArr, createTimeSpan( 30, 0, 0, 0 ), createTimeSpan( 15, 0, 0, 0 ) );
+
+			// save the watched ip's as a json file
+			saveWatchedIpFileToDisk( watchedIpArr );
+
+		}
+	}
+
+	/**
+	* @displayname	saveWatchedIpFileToDiskToDisk
+	* @description	I convert the watched ip array into json and save it to disk
+	* @param		watchedIpArr {Array} required - I am the watched ip array to save
+	* @return		void
+	*/
+	public void function saveWatchedIpFileToDisk( required array watchedIpArr ) {
+
+		// convert the array to json
+		var watchedIpJson = serializeJSON( arguments.watchedIpArr );
+		// check if the watched ip file exists
+		if( fileExists( expandPath( application.blockedIpDir ) & 'watched_ips.json' ) ) {
+			// it does, delete the existing file
+			fileDelete( expandPath( application.blockedIpDir ) & 'watched_ips.json' );
+		}
+		// write the JSON to disk
+		fileWrite( expandPath( application.blockedIpDir ) & 'watched_ips.json', watchedIpJson, 'UTF-8' );
+
+	}
+
+	/**
+	* @displayname	readWatchedIpFileFromDisk
+	* @description	I read the watched ip json from disk and convert it into an array
+	* @return		array
+	*/
+	public array function readWatchedIpFileFromDisk() {
+
+		var watchedIpJson = '';
+
+		// check if the watched ip file exists
+		if( fileExists( expandPath( application.blockedIpDir ) & 'watched_ips.json' ) ) {
+			// it does, read in the JSON
+			watchedIpJson = fileRead( expandPath( application.blockedIpDir ) & 'watched_ips.json', 'UTF-8' );
+			// and return an array of the JSON data
+			return deserializeJSON( watchedIpJson );
+		}
+
+		// file does not exist, return an empty array
+		return arrayNew(1);
+
+	}
+
+	/**
+	* @displayname	importWatchedIpFileFromUrl
+	* @description	I make an http call to a remote watched_ips.json file and add them to our local watched ip file
+	* @param		importUrl {String} required - I am the FQDN URL to the watched_ips.json file on the remote server (ex: https://domain.com/blocked/watched_ips.json)
+	* @return		array
+	*/
+	public void function importWatchedIpFileFromUrl( required string importUrl ) {
+
+		var httpService = new http(); 
+		var watchedIpArr = '';
+		var watchedIp = '';
+
+		// try to perform the import
+		try {
+
+			// set up the http attributes
+			httpService.setMethod( 'GET' ); 
+			httpService.setCharset( 'UTF-8' ); 
+			httpService.setUrl( arguments.importUrl );
+
+			// convert the returned JSON into an array
+			watchedIpArr = deserializeJSON( httpService.send().getPrefix().fileContent );
+
+			// loop through the array
+			for( watchedIp in watchedIpArr ) {
+				// and add each ip from the remote JSON file to our local array
+				addWatchedIp( watchedIp.ipAddress, watchedIp.reason );
 			}
 
 		// catch any errors (e.g. bad URL, network issues, etc.)

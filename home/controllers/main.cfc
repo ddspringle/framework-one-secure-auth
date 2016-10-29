@@ -169,4 +169,55 @@ component accessors="true" {
 		variables.fw.redirect( action = 'main.reset', queryString = "msg=200" );
 	}
 	
+	public void function error( rc ) {
+
+		rc.headers = getHTTPRequestData().headers;
+
+		if( structKeyExists( rc.headers, 'x-forwarded-for' ) ) {
+			rc.ipAddress = rc.headers[ 'x-forwarded-for' ];
+		} else {
+			rc.ipAddress = CGI.REMOTE_ADDR;
+		}
+
+		// check if the user is requesting a view not found (when onMissingView() isn't being used)
+		if( request.exception.cause.type eq 'FW1.viewNotFound' ) {
+			// and redirect to the root of the site
+			location( '/', 'false', '302' );
+		}
+
+		// check for parameter tampering/sql injection being the root cause of the error
+		if( 
+			( findNoCase( 'key', request.exception.cause.message ) and findNoCase( "doesnt exist", request.exception.cause.message ) )
+			or findNoCase( 'invalid hexadecimal string', request.exception.cause.message )
+			or findNoCase( 'given final block not properly padded', request.exception.cause.message )
+		) {
+
+			// parameter tampering likely, get this ip's record from the watched ip list
+			watchedIp = application.securityService.getWatchedIp( rc.ipAddress );
+
+			// check if the ip is currently being watched
+			if( watchedIp.isWatched ) {
+				// it is, check if the total number of times the ip has been flagged
+				// exceeds the total set in the Application.cfc
+				if( watchedIp.totalCount gt application.blockIpThreshold ) {
+					// it has, add this ip address to the blocked ip list
+					application.securityService.addBlockedIP( ipAddress = rc.ipAddress, reason = 'parameter tampering more than #application.blockIpThreshold# times');
+					// and remove it from the watched ip list
+					application.securityService.removeWatchedIP( rc.ipAddress );
+				// otherwise
+				} else {
+					// the ip has not exceeded the total flags required to be blocked
+					// increase the total times this ip has been flagged
+					application.securityService.increaseWatchedIpCount( ipAddress = rc.ipAddress, reason = request.exception.cause.message );
+				}
+			// otherwise
+			} else {
+				// this ip is not currently being watched, so add it to the watch list
+				application.securityService.addWatchedIP( ipAddress = rc.ipAddress, reason = request.exception.cause.message );
+			}
+			// redirect the browser to an html page for notification
+			location( '/ipFlagged.html', 'false', '302' );
+		}
+
+	}
 }

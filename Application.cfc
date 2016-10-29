@@ -96,6 +96,11 @@ component extends="framework.one" {
 		// importBlockedIPFileFromUrl() function of the security service
 		application.blockedIpDir = '/blocked/';
 
+		// set the number of times an ip address can attempt
+		// hacker like activity before being automatically added
+		// to the blocked ip list.
+		application.blockIpThreshold = 15;
+
 	}
 
 	/**

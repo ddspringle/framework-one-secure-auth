@@ -17,10 +17,11 @@ This project is an example [fw/1](https://github.com/framework-one/fw1) applicat
 * NEW! Uses keyring stored on disk to load encryption keys instead of hard-coded in the Application.cfc
 * NEW! Includes functions for reading, writing and generating a random keyring file
 * NEW! Includes functions for checking for, adding, removing and importing blocked IP's
+* NEW! Includes functions for checking for, adding, removing and importing watched IP's and managing watched/blocked IPs by catching common parameter tampering/sql injection attacks
 
 This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and is a good basic starting point if you need to create a secure application using fw/1.
 
-This code has since been expanded multiple times to include additional functionality not shown during the initial presentation. More details on how (and why) these security functions work and are important can be gleaned from reading the ColdFusion Security documents on [CFDocs](http://cfdocs.org/security) or from reviewing the SecurityService.cfc in /model/services/ which has been expanded for content.
+This code has since been expanded multiple times to include additional functionality not shown during the initial presentation. More details on how (and why) these security functions work and are important can be gleaned from reading the ColdFusion Security documents on [CFDocs](http://cfdocs.org/security) and from reviewing the SecurityService.cfc in /model/services/ which has been expanded for content.
 
 ## Compatibility
 
