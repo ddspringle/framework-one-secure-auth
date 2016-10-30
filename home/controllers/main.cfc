@@ -171,11 +171,16 @@ component accessors="true" {
 	
 	public void function error( rc ) {
 
+		// get the http request headers
 		rc.headers = getHTTPRequestData().headers;
 
+		// check if this server sits behind a load balancer, proxy or firewall
 		if( structKeyExists( rc.headers, 'x-forwarded-for' ) ) {
+			// it does, get the ip address this request has been forwarded for
 			rc.ipAddress = rc.headers[ 'x-forwarded-for' ];
+		// otherwise
 		} else {
+			// it doesn't, get the ip address of the remote client
 			rc.ipAddress = CGI.REMOTE_ADDR;
 		}
 
@@ -185,9 +190,17 @@ component accessors="true" {
 			location( '/', 'false', '302' );
 		}
 
-		// check for parameter tampering/sql injection being the root cause of the error
+		// check for sql injection errors
+		if( findNoCase( 'SQLInjection', request.exception.cause.type ) ) {
+			// sql injection attempt detected, add this ip address to the blocked ip list
+			application.securityService.addBlockedIP( ipAddress = rc.ipAddress, reason = request.exception.cause.message );
+			// redirect the browser to an html page for notification
+			location( '/ipBlocked.html', 'false', '302' );
+		}
+
+		// check for parameter tampering
 		if( 
-			( findNoCase( 'key', request.exception.cause.message ) and findNoCase( "doesnt exist", request.exception.cause.message ) )
+			( findNoCase( 'key', request.exception.cause.message ) and findNoCase( "doesn't exist", request.exception.cause.message ) )
 			or findNoCase( 'invalid hexadecimal string', request.exception.cause.message )
 			or findNoCase( 'given final block not properly padded', request.exception.cause.message )
 		) {
@@ -201,7 +214,7 @@ component accessors="true" {
 				// exceeds the total set in the Application.cfc
 				if( watchedIp.totalCount gt application.blockIpThreshold ) {
 					// it has, add this ip address to the blocked ip list
-					application.securityService.addBlockedIP( ipAddress = rc.ipAddress, reason = 'parameter tampering more than #application.blockIpThreshold# times');
+					application.securityService.addBlockedIP( ipAddress = rc.ipAddress, reason = 'parameter tampering more than #application.blockIpThreshold# times' );
 					// and remove it from the watched ip list
 					application.securityService.removeWatchedIP( rc.ipAddress );
 				// otherwise

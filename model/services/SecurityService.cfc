@@ -994,7 +994,7 @@ component displayname="SecurityService" accessors="true" {
 	* @displayname	importBlockedIPFileFromUrl
 	* @description	I make an http call to a remote blocked_ips.json file and add them to our local blocked ip file
 	* @param		importUrl {String} required - I am the FQDN URL to the blocked_ips.json file on the remote server (ex: https://domain.com/blocked/blocked_ips.json)
-	* @return		array
+	* @return		void
 	*/
 	public void function importBlockedIPFileFromUrl( required string importUrl ) {
 
@@ -1275,7 +1275,7 @@ component displayname="SecurityService" accessors="true" {
 	* @displayname	importWatchedIpFileFromUrl
 	* @description	I make an http call to a remote watched_ips.json file and add them to our local watched ip file
 	* @param		importUrl {String} required - I am the FQDN URL to the watched_ips.json file on the remote server (ex: https://domain.com/blocked/watched_ips.json)
-	* @return		array
+	* @return		void
 	*/
 	public void function importWatchedIpFileFromUrl( required string importUrl ) {
 
@@ -1303,6 +1303,91 @@ component displayname="SecurityService" accessors="true" {
 		// catch any errors (e.g. bad URL, network issues, etc.)
 		} catch( any e ) {
 			// and fail gracefully (you may wish to log here as well)
+		}
+
+	}
+
+	/* SQL INJECTION 
+
+		This section of the security service provides functions to
+		help detect SQL injection attempts and throw errors if found.
+
+		Functions include:
+			checking if a query string contains SQL injection attempts
+
+		Notes: 
+			This code is by no means exhaustive and may trigger false
+			positives if you are not obfuscating and encrypting your
+			URL parameters and values
+
+			Errors are caught by the home.main.error function and
+			will cause the offending IP address to be added to the
+			blocked IP list. 
+	
+	*/
+
+	/**
+	* @displayname	checkSqlInjectionAttempt
+	* @description	I check a passed in query string to ensure it does not contain SQL injection attempts
+	* @param		queryString {String} required - I am the query string to parse for SQL injection attempts
+	* @return		void
+	*/
+	public void function checkSqlInjectionAttempt( required string queryString ) {
+
+		var msg = '';
+
+		// decode the query string
+		arguments.queryString = urlDecode( arguments.queryString );
+
+		// encode the query string for JSON storage
+		msg = encodeForJavaScript( arguments.queryString );
+
+		// check for passing of hex string (0xHEXNUMBER) in query string
+		if( reFindNoCase( '0[X][0-9A-F]+', arguments.queryString ) ) {
+			// hex string found, throw an error to be caught
+			throw( type = 'SQLInjection.Hex', message = '#msg# contains hexadecimal characters');
+		}
+
+		// check for passing of chr([]), char([]) or concat([]) in query string
+		if( listFindNoCase( 'chr(,char(,concat(', arguments.queryString ) ) {
+			// value found, throw an error to be caught
+			throw( type = 'SQLInjection.Char', message = '#msg# contains SQL string attack characters');
+		}
+
+		// check for passing semi-colon followed by any common SQL command in query string
+		if( reFindNoCase( ';.*(select|insert|update|delete|drop|alter|create)', arguments.queryString ) ) {
+			// found semi-colon followed by a common SQL command, throw an error to be caught
+			throw( type = 'SQLInjection.Command', message = '#msg# contains SQL commands');
+		}
+
+		// check for passing of comments in query string
+		if( findNoCase( '/*', arguments.queryString ) or findNoCase( '*/', arguments.queryString ) ) {
+			// found a comment throw an error to be caught
+			throw( type = 'SQLInjection.Comment', message = '#msg# contains comment characters');
+		}
+
+		// check for ' and' in query string
+		if( findNoCase( ' and', arguments.queryString ) ) {
+			// found ' and', throw an error to be caught
+			throw( type = 'SQLInjection.And', message = '#msg# contains [ and]');
+		}
+
+		// check for ' or' in query string
+		if( findNoCase( ' or', arguments.queryString ) ) {
+			// found ' or', throw an error to be caught
+			throw( type = 'SQLInjection.Or', message = '#msg# contains [ or]');
+		}
+
+		// check for ' union' in query string
+		if( findNoCase( ' union', arguments.queryString ) ) {
+			// found ' union', throw an error to be caught
+			throw( type = 'SQLInjection.Union', message = '#msg# contains [ union]');
+		}
+
+		// check for apostrophe in query string
+		if( findNoCase( "'", arguments.queryString ) ) {
+			// found apostrophe, throw an error to be caught
+			throw( type = 'SQLInjection.Apostrophe', message = '#msg# contains apostrophe character');
 		}
 
 	}

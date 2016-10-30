@@ -122,15 +122,33 @@ component extends="framework.one" {
 	* @description I'm run by fw/1 during onRequestStart() to configure request level settings
 	*/	
 	function setupRequest() {
+		
+		// get the http request headers
+		var headers = getHTTPRequestData().headers;
+		var ipAddress = '';
+
+		// check if this server sits behind a load balancer, proxy or firewall
+		if( structKeyExists( headers, 'x-forwarded-for' ) ) {
+			// it does, get the ip address this request has been forwarded for
+			ipAddress = headers[ 'x-forwarded-for' ];
+		// otherwise
+		} else {
+			// it doesn't, get the ip address of the remote client
+			ipAddress = CGI.REMOTE_ADDR;
+		}
 
 		// check if this ip address is blocked
-		if( application.securityService.isBlockedIP( CGI.REMOTE_ADDR ) ) {
-			// it is, abort any further processing (helps prevent DDOS, etc.)
-			// you could also redirect here to an HTML page with *no links in the html* 
-			// (bots follow links) if you would prefer to give feedback to the end user 
-			// ex: location( 'botDiscovered.html', 'false', '301' )
-			abort;
+		if( application.securityService.isBlockedIP( ipAddress ) ) {
+			// it is, redirect here to an HTML page with *no links in the html* 
+			// (bots follow links) if you would prefer to give feedback to the end user
+			// otherwise simply abort further processing
+			location( 'ipBlocked.html', 'false', '301' )
 		}
+
+		// check if the query string contains SQL injection attempts
+		// if sql injection is detected an error is thrown and caught
+		// by home.main.error
+		application.securityService.checkSqlInjectionAttempt( CGI.QUERY_STRING );
 
 		// check if we're in the 'admin' subsystem
 		if( getSubsystem() eq 'admin' ) {
