@@ -394,39 +394,39 @@ component displayname="SecurityService" accessors="true" {
 		// check if a password length was specified
 		if( !arguments.length ) {
 			// it wasn't specified, set a random length
-			arguments.length = randRange( 12, 18 );
+			arguments.length = randRange( 12, 18, 'SHA1PRNG' );
 		}
 
 		// loop through the length of the password
 		for( ix = 1; ix <= arguments.length; ix++ ) {
 
 			// choose a random pattern (1 to 4)
-			pattern = randRange( 1, 4 );
+			pattern = randRange( 1, 4, 'SHA1PRNG' );
 
 			// switch on the pattern of 1 to 4
 			switch( pattern ) {
 				// case 1 - lowercase alpha
 				case 1:
 					// select random lowercase alpha character
-					char = chr( randRange( 97, 122 ) );
+					char = chr( randRange( 97, 122, 'SHA1PRNG' ) );
 				break;
 
 				// case 2 - uppercase alpha
 				case 2:
 					// select random uppercase alpha character
-					char = chr( randRange( 65, 90 ) );
+					char = chr( randRange( 65, 90, 'SHA1PRNG' ) );
 				break;
 
 				// case 3 - numeric
 				case 3:
 					// select random numeric character
-					char = chr( randRange( 48, 57 ) );
+					char = chr( randRange( 48, 57, 'SHA1PRNG' ) );
 				break;
 
 				// case 4 - special
 				case 4:
 					// select random special character from the list
-					char = listGetAt( special, randRange( 1, listLen( special ) ) );
+					char = listGetAt( special, randRange( 1, listLen( special ), 'SHA1PRNG' ) );
 				break;
 			}
 
@@ -653,7 +653,7 @@ component displayname="SecurityService" accessors="true" {
 	public string function getHeartbeat() {
 
 		// get a random value for the heartbeat of the login form
-		var heartbeat = lCase( left( uberHash( now() & createUUID() & randRange( 1000, 9999 ), 'SHA-384', randRange( 1000, 3000 ) ), randRange( 32, 64 ) ) );
+		var heartbeat = lCase( left( uberHash( now() & createUUID() & randRange( 1000, 9999, 'SHA1PRNG' ), 'SHA-384', randRange( 1000, 3000, 'SHA1PRNG' ) ), randRange( 32, 64, 'SHA1PRNG' ) ) );
 
 		// and return the heartbeat value
 		return heartbeat;
@@ -668,7 +668,7 @@ component displayname="SecurityService" accessors="true" {
 	public string function getMfaCode() {
 
 		// get a random auth code of a random length for multi-factor authentication
-		var mfaCode = left( uberHash( createUUID() & now(), 'MD5', RandRange(1000,3000) ), randRange( 4, 8 ) );
+		var mfaCode = left( uberHash( createUUID() & now(), 'MD5', RandRange( 1000, 3000, 'SHA1PRNG' ) ), randRange( 4, 8, 'SHA1PRNG' ) );
 
 		// and return the mfa code
 		return mfaCode;
@@ -694,7 +694,7 @@ component displayname="SecurityService" accessors="true" {
 	*/
 	public string function generateTokenKey() {
 		// return randomly generated, random length valid variable (key) name
-		return chr( randRange( 97, 122 ) ) & left( lCase( uberHash( createUUID() & randRange( 1000, 100000 ), 'SHA-384', randRange( 25, 150 ) ) ), randRange( 31, 63 ) );
+		return chr( randRange( 97, 122, 'SHA1PRNG' ) ) & left( lCase( uberHash( createUUID() & randRange( 1000, 100000, 'SHA1PRNG' ), 'SHA-384', randRange( 25, 150, 'SHA1PRNG' ) ) ), randRange( 31, 63, 'SHA1PRNG' ) );
 	}
 
 	/* KEYRING MANAGEMENT
@@ -722,7 +722,7 @@ component displayname="SecurityService" accessors="true" {
 		// loop 3 times to generate 3 keys
 		for( i=1; i<=3; i++ ) {
 			// randomly choose between AES and BLOWFISH algorithms for this key
-			variables.algorithm = ( ( randRange( 0, 1 ) ) ? 'AES' : 'BLOWFISH' );
+			variables.algorithm = ( ( randRange( 0, 1, 'SHA1PRNG' ) ) ? 'AES' : 'BLOWFISH' );
 
 			// set up a struct to hold the key
 			variables.keyStruct = {};
