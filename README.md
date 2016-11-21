@@ -19,6 +19,8 @@ This project is an example [fw/1](https://github.com/framework-one/fw1) applicat
 * NEW! Includes functions for checking for, adding, removing and importing blocked IP's
 * NEW! Includes functions for checking for, adding, removing and importing watched IP's 
 * NEW! Managing watched/blocked IPs by catching common parameter tampering/sql injection attacks
+* NEW! Added optional true/false parameter to uberHash function to append the current date to the input value on hash
+* BREAKING CHANGE! Renamed outcase {String} lower/upper parameter to useLowercase {boolean} true/false within the uberHash function
 
 This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and is a good basic starting point if you need to create a secure application using fw/1.
 
