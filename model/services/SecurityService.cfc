@@ -318,9 +318,25 @@ component displayname="SecurityService" accessors="true" {
 		help manage obfuscation with hashing.
 
 		Functions include:
-			generating a hash by passing in the input, method, iterations and case
-			NOTE: This function is deprecated now that both Lucee and ACF support 
-			iterations and this code now requires ACF 11 / Lucee 4.5 or higher
+			generating a hash by passing in the input, method, iterations 
+			and flags for case and date addition
+			NOTE: Breaking change in this release: 
+				  outcase (lower/upper) {String} parameter has been removed 
+				  it has been replaced with useLowercase {Boolean} instead
+				  the default remains 'true' so unless you specified 'outcase'
+				  when calling this function, it will not affect you. If you have
+				  I apologize but hope you agree this function is now more descriptive
+				  while also reducing the code required to execute.
+			NOTE: This function has found new use with the addition of an additional
+				  parameter: addDate {Boolean}. This defaults to false to maintain
+				  backwards compatibility, however, seting addDate to true now appends
+				  the current date in yyyymmdd format to the input string before being
+				  hashed - providing increased day to day protection for obfuscated
+				  url parameter names against would-be hackers. It is recommended that
+				  you use addDate = true on internal, non-public or otherwise non-indexed
+				  views within your application. Use of addDate on public/indexed pages
+				  will break the link and is, obviously, *not* recommended.
+
 
 	*/
 
@@ -330,21 +346,22 @@ component displayname="SecurityService" accessors="true" {
 	* @param		input {String} required - I am the string to hash
 	* @param		method {String} default: SHA-384 - I am the encoding to use for this hash
 	* @param		iterations {Numeric} default: 1000 - I am the number of times to has the value
-	* @param		outcase {String} default: lower - I am the case to return the hash in, one of lower or upper
+	* @param		useLowercase {Boolean} default: true - I flag if the hash should be returned lowercase (true) or uppercase (false)
+	* @param		addDate {Boolean} default: false - I flag if the current date should be appended to the input when hashing
 	* @return		string
 	*/
-	public string function uberHash( required string input, string method = 'SHA-384', numeric iterations = 1000, string outcase = 'lower' ) {
+	public string function uberHash( required string input, string method = 'SHA-384', numeric iterations = 1000, boolean useLowercase = true, boolean addDate = false ) {
 
 		// use the native hash() function with UTF-8 encoding to encode the input string
-		var output = hash( arguments.input, arguments.method, 'UTF-8', arguments.iterations );
+		var output = hash( arguments.input & ( ( arguments.addDate ) ? dateFormat( now(), 'yyyymmdd' ) : '' ), arguments.method, 'UTF-8', arguments.iterations );
 
 		// check if we're returning lowercase
-		if( findNoCase( 'lower', arguments.outcase ) ) {
+		if( arguments.useLowercase ) {
 			// we are, set the case of the hash to lowercase
 			output = lCase( output );
 		}
 
-		// return the input hashed iterations 
+		// return the hashed input value 
 		return output;
 
 	}
