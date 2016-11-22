@@ -109,6 +109,8 @@ component displayname="SecurityService" accessors="true" {
 		var lastPass = '';
 		
 		// check if the passed value has length
+		// cannot use `arguments.value.len()` with Lucee when `value` is numeric.
+		// https://luceeserver.atlassian.net/browse/LDEV-332
 		if( len( arguments.value ) ) {
 
 			// switch on the encryption mode
@@ -220,6 +222,8 @@ component displayname="SecurityService" accessors="true" {
 		var lastPass = '';
 		
 		// check if the passed value has length
+		// cannot use `arguments.value.len()` with Lucee when `value` is numeric.
+		// https://luceeserver.atlassian.net/browse/LDEV-332
 		if( len( arguments.value ) ) {
 
 			// switch on the encryption mode
