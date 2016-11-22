@@ -109,7 +109,7 @@ component displayname="SecurityService" accessors="true" {
 		var lastPass = '';
 		
 		// check if the passed value has length
-		if( arguments.value.len() ) {
+		if( len( arguments.value ) ) {
 
 			// switch on the encryption mode
 			switch( arguments.mode ) {
@@ -220,7 +220,7 @@ component displayname="SecurityService" accessors="true" {
 		var lastPass = '';
 		
 		// check if the passed value has length
-		if( arguments.value.len() ) {
+		if( len( arguments.value ) ) {
 
 			// switch on the encryption mode
 			switch( arguments.mode ) {
