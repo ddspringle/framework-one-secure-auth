@@ -109,70 +109,77 @@ component displayname="SecurityService" accessors="true" {
 		var lastPass = '';
 		
 		// check if the passed value has length
-		if( len( arguments.value ) ) {
-		
-			// it does, check if the mode of the encryption is 'db'
-			if( findNoCase( 'db', arguments.mode ) ) {
-			
-				// using database encryption, encrypt with the first set of keys and algorithm
-				onepass = encrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
-				// and again with the second set of keys and algorithm
-				twopass = encrypt( onepass, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
-				// and again with the third set of keys and algorithm
-				lastPass = encrypt( twopass, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
-				
-			// otherwise, check if the mode of the encryption is 'repeatable'
-			} else if( findNoCase( 'repeatable', arguments.mode ) ) {
-				
-				// using database encryption, encrypt with the first set of keys and algorithm
-				onepass = encrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
-				// and again with the second set of keys and algorithm
-				twopass = encrypt( onepass, variables.encryptionKey2,  listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2 );
-				// and again with the third set of keys and algorithm
-				lastPass = encrypt( twopass, variables.encryptionKey3,  listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3);
-			
-			// otherwise, check if the mode of the encryption is 'url'
-			} else if( findNoCase( 'url', arguments.mode ) ) {
-				
-				// using url encryption, check if useing BASE64 encoding on the URL key
-				if( findNoCase( 'BASE64', variables.encryptionEncoding1 ) ) {
-				
-					// encrypt with the first set of keys and repeatable algorithm
-					lastPass = encrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1);
-					// using BASE64 encoding, URL encode the value
-					lastPass = URLEncodedFormat( lastPass );
-				
-				// otherwise
-				} else {
-				
-					// not BASE64 encoded, encrypt with the first set of keys and algorithm
-					lastPass = encrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
-				
-				// end checking if useing BASE64 encoding on the URL key	
-				}
+		if( arguments.value.len() ) {
 
-			// otherwise, check if the mode of the encryption is 'master'
-			} else if( findNoCase( 'master', arguments.mode ) ) {
-			
-				// using master encryption, encrypt with the master key and second algorithm
-				onePass = encrypt( arguments.value, variables.masterKey, 'AES/CBC/PKCS5Padding', 'HEX' );
-				lastPass = encrypt( onePass, variables.masterKey, 'BLOWFISH/CTR/PKCS5Padding', 'HEX' );
-				
-			// otherwise, check if the mode of the encryption is 'form'
-			} else if( findNoCase( 'form', arguments.mode ) ) {
-			
-				// using form encryption, encrypt with the second set of keys and algorithm
-				lastPass = encrypt( arguments.value, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
-				
-			// otherwise, check if the mode of the encryption is 'cookie'
-			} else if( findNoCase( 'cookie', arguments.mode ) ) {
-			
-				// using cookie encryption, encrypt with the first set of keys and algorithm
-				lastPass = encrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
-			
-			// end checking if the mode of the encryption is 'db', 'url', 'form' or 'cookie'	
+			// switch on the encryption mode
+			switch( arguments.mode ) {
+
+				// database
+				case 'db':			
+					// using database encryption, encrypt with the first set of keys and algorithm
+					onepass = encrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
+					// and again with the second set of keys and algorithm
+					twopass = encrypt( onepass, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
+					// and again with the third set of keys and algorithm
+					lastPass = encrypt( twopass, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
+				break;
+
+				// repeatable database
+				case 'repeatable':				
+					// using repeatable database encryption, encrypt with the first set of keys and algorithm
+					onepass = encrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
+					// and again with the second set of keys and algorithm
+					twopass = encrypt( onepass, variables.encryptionKey2,  listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2 );
+					// and again with the third set of keys and algorithm
+					lastPass = encrypt( twopass, variables.encryptionKey3,  listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3);
+				break;
+
+				// master
+				case 'master':
+					// using master encryption, encrypt with the master key
+					onePass = encrypt( arguments.value, variables.masterKey, 'AES/CBC/PKCS5Padding', 'HEX' );
+					lastPass = encrypt( onePass, variables.masterKey, 'BLOWFISH/CTR/PKCS5Padding', 'HEX' );
+				break;
+
+				// URL
+				case 'url':				
+					// using url encryption, check if using BASE64 encoding on the URL key
+					if( findNoCase( 'BASE64', variables.encryptionEncoding1 ) ) {
+					
+						// we are, encrypt with the first set of keys and repeatable algorithm
+						lastPass = encrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1);
+						// using BASE64 encoding, URL encode the value
+						lastPass = URLEncodedFormat( lastPass );
+					
+					// otherwise
+					} else {
+					
+						// not BASE64 encoded, encrypt with the first set of keys and algorithm
+						lastPass = encrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
+					
+					// end checking if useing BASE64 encoding on the URL key	
+					}
+				break;
+
+				// FORM
+				case 'form':		
+					// using form encryption, encrypt with the second set of keys and algorithm
+					lastPass = encrypt( arguments.value, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
+				break;
+
+				// COOKIE
+				case 'cookie':
+					// using cookie encryption, encrypt with the first set of keys and algorithm
+					lastPass = encrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
+				break;
+
+				// default
+				default:
+					return lastPass;
+				break;
+
 			}
-		
+
 		// end checking if the passed value has length
 		}
 		
@@ -213,72 +220,78 @@ component displayname="SecurityService" accessors="true" {
 		var lastPass = '';
 		
 		// check if the passed value has length
-		if( len( arguments.value ) ) {
-		
-			// it does, check if the mode of the encryption is 'db'
-			if( findNoCase( 'db', arguments.mode ) ) {
-	
-				// using database encryption, decrypt with the third set of keys and algorithm
-				var onePass = Decrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
-				// and again with the second set of keys and algorithm
-				var twoPass = Decrypt( onepass, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
-				// and again with the first set of keys and algorithm
-				var lastPass = Decrypt( twopass, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
-		
-			// otherwise, check if the mode of the encryption is 'repeatable'
-			} else if( findNoCase( 'repeatable', arguments.mode ) ) {
-	
-				// using database encryption, decrypt with the third set of keys and algorithm
-				var onePass = Decrypt( arguments.value, variables.encryptionKey3, listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3 );
-				// and again with the second set of keys and algorithm
-				var twoPass = Decrypt( onepass, variables.encryptionKey2, listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2 );
-				// and again with the first set of keys and algorithm
-				var lastPass = Decrypt( twopass, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
-			
-			// otherwise, check if the mode of the encryption is 'url'
-			} else if( findNoCase( 'url', arguments.mode ) ) {
-				
-				// using url encryption, check if useing BASE64 encoding on the URL key
-				if( findNoCase( 'BASE64', variables.encryptionEncoding1 ) ) {
-				
-					// using BASE64 encoding, URL decode the value
-					arguments.value = URLDecode( arguments.value );
-					// replace spaces with +
-					arguments.value = Replace( arguments.value, chr(32), '+', 'ALL' );
-					// decrypt with the first set of keys and repeatable algorithm
-					lastPass = Decrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
-				
-				// otherwise
-				} else {
-				
-					// not BASE64 encoded, decrypt with the first set of keys and algorithm
-					lastPass = Decrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
-				
-				// end checking if useing BASE64 encoding on the URL key	
-				}
-				
-			// otherwise, check if the mode of the encryption is 'master'
-			} else if( findNoCase( 'master', arguments.mode ) ) {
-			
-				// using master encryption, decrypt with the master key and second algorithm
-				onePass = Decrypt( arguments.value, variables.masterKey, 'BLOWFISH/CTR/PKCS5Padding', 'HEX' );
-				lastPass = Decrypt( onePass, variables.masterKey, 'AES/CBC/PKCS5Padding', 'HEX' );
-				
-			// otherwise, check if the mode of the encryption is 'form'
-			} else if( findNoCase( 'form', arguments.mode ) ) {
-			
-				// using form encryption, decrypt with the second set of keys and algorithm
-				lastPass = Decrypt( arguments.value, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
-				
-			// otherwise, check if the mode of the encryption is 'cookie'
-			} else if( findNoCase( 'cookie', arguments.mode ) ) {
-			
-				// using cookie encryption, decrypt with the first set of keys and algorithm
-				lastPass = Decrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
-			
-			// end checking if the mode of the encryption is 'db', 'url', 'form' or 'cookie'	
+		if( arguments.value.len() ) {
+
+			// switch on the encryption mode
+			switch( arguments.mode ) {
+
+				// database
+				case 'db':
+					// using database encryption, decrypt with the third set of keys and algorithm
+					var onePass = decrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
+					// and again with the second set of keys and algorithm
+					var twoPass = decrypt( onepass, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
+					// and again with the first set of keys and algorithm
+					var lastPass = decrypt( twopass, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
+				break;
+
+				// repeatable database
+				case 'repeatable':
+					// using database encryption, decrypt with the third set of keys and algorithm
+					var onePass = decrypt( arguments.value, variables.encryptionKey3, listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3 );
+					// and again with the second set of keys and algorithm
+					var twoPass = decrypt( onepass, variables.encryptionKey2, listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2 );
+					// and again with the first set of keys and algorithm
+					var lastPass = decrypt( twopass, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
+				break;
+
+				// master
+				case 'master':
+					// using master encryption, decrypt with the master key and second algorithm
+					onePass = decrypt( arguments.value, variables.masterKey, 'BLOWFISH/CTR/PKCS5Padding', 'HEX' );
+					lastPass = decrypt( onePass, variables.masterKey, 'AES/CBC/PKCS5Padding', 'HEX' );
+				break;
+
+				// URL
+				case 'url':
+					// using url encryption, check if useing BASE64 encoding on the URL key
+					if( findNoCase( 'BASE64', variables.encryptionEncoding1 ) ) {
+
+						// using BASE64 encoding, URL decode the value
+						arguments.value = urlDecode( arguments.value );
+						// replace spaces with +
+						arguments.value = replace( arguments.value, chr(32), '+', 'ALL' );
+						// decrypt with the first set of keys and repeatable algorithm
+						lastPass = decrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
+
+					// otherwise
+					} else {
+
+						// not BASE64 encoded, decrypt with the first set of keys and algorithm
+						lastPass = decrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
+
+					// end checking if useing BASE64 encoding on the URL key	
+					}
+				break;
+
+				// FORM
+				case 'form':
+					// using form encryption, decrypt with the second set of keys and algorithm
+					lastPass = decrypt( arguments.value, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
+				break;
+
+				// COOKIE
+				case 'cookie':
+					// using cookie encryption, decrypt with the first set of keys and algorithm
+					lastPass = decrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
+				break;
+
+				// default
+				default:
+					return lastPass;
+				break;
 			}
-		
+
 		// end checking if the passed value has length
 		}
 
@@ -668,7 +681,7 @@ component displayname="SecurityService" accessors="true" {
 	public string function getMfaCode() {
 
 		// get a random auth code of a random length for multi-factor authentication
-		var mfaCode = left( uberHash( createUUID() & now(), 'MD5', RandRange( 1000, 3000, 'SHA1PRNG' ) ), randRange( 4, 8, 'SHA1PRNG' ) );
+		var mfaCode = left( uberHash( createUUID() & now(), 'MD5', randRange( 1000, 3000, 'SHA1PRNG' ) ), randRange( 4, 8, 'SHA1PRNG' ) );
 
 		// and return the mfa code
 		return mfaCode;
@@ -760,17 +773,8 @@ component displayname="SecurityService" accessors="true" {
 
 		}
 
-		// read in the binary data from disk
-		variables.binaryJson = fileReadBinary( variables.keyRingPath );
-
-		// convert from binary to string data
-		variables.encJson = charsetEncode( variables.binaryJson, "utf-8" );
-
-		// decrypt the string data into JSON with the master key
-		variables.jsonArray = dataDec( variables.encJson, 'master' );
-
 		// and return the JSON as an array
-		return deserializeJSON( variables.jsonArray );
+		return deserializeJSON( dataDec( charsetEncode( fileReadBinary( variables.keyRingPath ), 'utf-8' ), 'master' ) );
 
 	}
 
@@ -782,17 +786,8 @@ component displayname="SecurityService" accessors="true" {
 	*/
 	private void function saveKeyRingToDisk( required array keyRing ) {
 
-		// serialize the keyring into JSON
-		variables.jsonArray = serializeJSON( arguments.keyRing );
-
-		// encrypt the JSON with the master key
-		variables.encJson = dataEnc( variables.jsonArray, 'master' );
-
-		// convert the encrypted data to binary
-		variables.binaryJson = charsetDecode( variables.encJson, "utf-8" );
-
 		// write the keyring file to disk
-		fileWrite( variables.keyRingPath, variables.binaryJson );
+		fileWrite( variables.keyRingPath, charsetDecode( dataEnc( serializeJSON( arguments.keyRing ), 'master' ), 'utf-8' ) );
 
 	}
 
