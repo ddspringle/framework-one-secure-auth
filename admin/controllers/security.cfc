@@ -82,7 +82,7 @@ component {
 			}
 
 			// send a new cookie with the new encrypted session id
-			getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=#application.securityService.setSessionIdForCookie( session.sessionObj.getSessionId() )#;path=/;domain=.#CGI.HTTP_HOST#;HTTPOnly");
+			getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=#application.securityService.setSessionIdForCookie( session.sessionObj.getSessionId() )#;path=/;domain=#CGI.REMOTE_HOST#;HTTPOnly");
 
 		}
 

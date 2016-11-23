@@ -30,7 +30,7 @@ component accessors="true" {
 		variables.fw.disableLayout();
 		
 		// set a zero session cookie when hitting the login page (federate the login)
-		getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=0;path=/;domain=.#CGI.HTTP_HOST#;HTTPOnly");
+		getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=0;path=/;domain=#CGI.REMOTE_HOST#;HTTPOnly");
 
 		// lock and clear the sessionObj
 		lock scope='session' timeout='10' {			
@@ -150,7 +150,7 @@ component accessors="true" {
 		}
 
 		// set the session cookie with the new encrypted session id
-		getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=#application.securityService.setSessionIdForCookie( session.sessionObj.getSessionId() )#;path=/;domain=.#CGI.HTTP_HOST#;HTTPOnly");
+		getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=#application.securityService.setSessionIdForCookie( session.sessionObj.getSessionId() )#;path=/;domain=#CGI.REMOTE_HOST#;HTTPOnly");
 
 		// and go to the dashboard view
 		variables.fw.redirect( 'main.dashboard' );
@@ -172,7 +172,7 @@ component accessors="true" {
 		}
 
 		// set a zero session cookie when hitting the login page (federate the login)
-		getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=0;path=/;domain=.#CGI.HTTP_HOST#;HTTPOnly");
+		getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=0;path=/;domain=#CGI.REMOTE_HOST#;HTTPOnly");
 
 		// go to the login page
 		variables.fw.redirect( action = 'main.default', queryString = 'msg=200' );
