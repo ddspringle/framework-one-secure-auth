@@ -25,7 +25,7 @@ component {
 		
 		// lock and clear the sessionObj
 		lock scope='session' timeout='10' {
-			session.sessionObj = createObject( 'component', 'model.beans.Session').init();
+			session.sessionObj = new model.beans.Session();
 		}
 
 	}
