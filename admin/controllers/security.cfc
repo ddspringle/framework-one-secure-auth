@@ -84,6 +84,15 @@ component {
 			// send a new cookie with the new encrypted session id
 			getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=#application.securityService.setSessionIdForCookie( session.sessionObj.getSessionId() )#;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
 
+			// send a new primary dummy cookie
+			getPageContext().getResponse().addHeader("Set-Cookie", "#application.dummyCookieOne#=#application.securityService.generateDummyCookieValue( 'BASE64' )#;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
+
+			// send a new secondary dummy cookie
+			getPageContext().getResponse().addHeader("Set-Cookie", "#application.dummyCookieTwo#=#application.securityService.generateDummyCookieValue( 'UU' )#;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
+
+			// send a new tertiary dummy cookie
+			getPageContext().getResponse().addHeader("Set-Cookie", "#application.dummyCookieThree#=#application.securityService.generateDummyCookieValue( 'HEX' )#;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
+
 		}
 
 	}

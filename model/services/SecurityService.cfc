@@ -1408,4 +1408,16 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
+	/**
+	* @displayname	generateDummyCookieValue
+	* @description	I generate a random value for dummy cookies
+	* @param		encoding {String} default: BASE64 - I am the encoding to use for the encryption
+	* @return		string
+	*/
+	public string function generateDummyCookieValue( string encoding = 'BASE64' ) {
+
+		// return a random encrypted value to use for dummy cookies
+		return urlEncodedFormat( encrypt( lcase( hash( createUUID() & now(), 'SHA-512', 'UTF-8', 1000 ) ), generateSecretKey('AES'), 'AES/CTR/PKCS5Padding', arguments.encoding ) );
+	}
+
 }

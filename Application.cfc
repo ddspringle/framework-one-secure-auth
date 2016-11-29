@@ -84,8 +84,18 @@ component extends="framework.one" {
 		// (*DO NOT USE* cfid, cftoken or jsessionid)
 		// Obscuring your cookie name using common tracker names
 		// can help throw a would-be hacker off course
-		// ex: __ga_utm_source, __imgur_ref_id, __fb_beacon_id, etc.
-		application.cookieName = '__secure_auth_id';
+		// ex: __ga_utm_source, __imgur_ref_id, __fb_beacon_token, etc.
+		application.cookieName = '__ga_utm_source';
+
+		// set the name of the dummy cookies to use to help
+		// obfuscate the actual session cookie 
+		// (*DO NOT USE* cfid, cftoken or jsessionid)
+		// Using obscure and/or common session cookie names
+		// here can help throw a would-be hacker off course
+		// ex: __secure_auth_id, session_id, _fb__beacon__token, etc.
+		application.dummyCookieOne = '__secure_auth_id';
+		application.dummyCookieTwo = 'session_id';
+		application.dummyCookieThree = '_fb__beacon__token_';
 
 		// set number of minutes before a session is timed out
 		application.timeoutMinutes = 30; // 30 minutes
