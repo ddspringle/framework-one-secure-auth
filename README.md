@@ -14,13 +14,13 @@ This project is an example [fw/1](https://github.com/framework-one/fw1) applicat
 * Stores user data in encrypted format in the database
 * Default CBC/PKCS5Padding defined for encryption algorithms
 * Includes HTTP security headers designed to reduce attack surface
-* NEW! Uses keyring stored on disk to load encryption keys instead of hard-coded in the Application.cfc
-* NEW! Includes functions for reading, writing and generating a random keyring file
-* NEW! Includes functions for checking for, adding, removing and importing blocked IP's
-* NEW! Includes functions for checking for, adding, removing and importing watched IP's 
-* NEW! Managing watched/blocked IPs by catching common parameter tampering/sql injection attacks
-* NEW! Added optional `addDate` true/false parameter to uberHash function to append the current date to the input value on hash
-* BREAKING CHANGE! Renamed `outcase {String} lower/upper` parameter to `useLowercase {boolean} true/false` within the uberHash function
+* Uses keyring stored on disk to load encryption keys instead of hard-coded in the Application.cfc
+* Includes functions for reading, writing and generating a random keyring file
+* Includes functions for checking for, adding, removing and importing blocked IP's
+* Includes functions for checking for, adding, removing and importing watched IP's 
+* Managing watched/blocked IPs by catching common parameter tampering/sql injection attacks
+* Added optional `addDate` true/false parameter to uberHash function to append the current date to the input value on hash
+* NEW! addition of 'dummy' cookies for the purpose of further obfuscating which cookie is used for session management
 
 This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and is a good basic starting point if you need to create a secure application using fw/1.
 
