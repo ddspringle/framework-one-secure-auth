@@ -90,6 +90,7 @@ component displayname="SecurityService" accessors="true" {
 				repeatable - triple-pass repeatable encryption (for storing usernames)
 				url - single-pass encryption for values passed on the url
 				form - single-pass encryption using a different key for values passed in the form
+				rform - double-pass repeatable encryption (for encrypting uid's in form selects)
 				cookie - single-pass encryption using a different key for values passed in cookies
 				master - double-pass encryption of the keyring using CBC and CTR
 
@@ -164,9 +165,17 @@ component displayname="SecurityService" accessors="true" {
 				break;
 
 				// FORM
-				case 'form':		
+				case 'form':
 					// using form encryption, encrypt with the second set of keys and algorithm
 					lastPass = encrypt( arguments.value, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
+				break;
+
+				// REPEATABLE FORM
+				case 'rform':
+					// using rform encryption, encrypt with the second set of keys and repeatable algorithm
+					onePass = encrypt( arguments.value, variables.encryptionKey2,  listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2 );
+					// and encrypt with the third set of keys and repeatable algorithm
+					lastPass = encrypt( onePass, variables.encryptionKey3,  listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3 );
 				break;
 
 				// COOKIE
@@ -202,6 +211,7 @@ component displayname="SecurityService" accessors="true" {
 				repeatable - triple-pass repeatable decryption (for decrypting usernames)
 				url - single-pass decryption for values passed on the url
 				form - single-pass decryption using a different key for values passed in the form
+				rform - double-pass repeatable decryption (for decrypting uid's from form selects)
 				cookie - single-pass decryption using a different key for values passed in cookies
 				master - double-pass decryption of the keyring using CBC and CTR
 
@@ -282,6 +292,14 @@ component displayname="SecurityService" accessors="true" {
 				case 'form':
 					// using form encryption, decrypt with the second set of keys and algorithm
 					lastPass = decrypt( arguments.value, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
+				break;
+
+				// REPEATABLE FORM
+				case 'rform':
+					// using rform encryption, decrypt with the third set of keys and repeatable algorithm
+					onePass = decrypt( arguments.value, variables.encryptionKey3,  listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3 );
+					// and decrypt with the second set of keys and repeatable algorithm
+					lastPass = decrypt( onePass, variables.encryptionKey2,  listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2 );
 				break;
 
 				// COOKIE

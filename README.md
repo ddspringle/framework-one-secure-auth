@@ -20,7 +20,9 @@ This project is an example [fw/1](https://github.com/framework-one/fw1) applicat
 * Includes functions for checking for, adding, removing and importing watched IP's 
 * Managing watched/blocked IPs by catching common parameter tampering/sql injection attacks
 * Added optional `addDate` true/false parameter to uberHash function to append the current date to the input value on hash
-* NEW! addition of 'dummy' cookies for the purpose of further obfuscating which cookie is used for session management
+* NEW! 'dummy' cookies for the purpose of further obfuscating which cookie is used for session management
+* NEW! Repeatable form encryption for ajax populated and javascript selected form fields
+* NEW! BaseBean with convenience functions for populating primary key data and CSRF fields in urls and forms (respectively)
 
 This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and is a good basic starting point if you need to create a secure application using fw/1.
 
