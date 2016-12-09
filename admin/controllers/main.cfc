@@ -32,13 +32,13 @@ component accessors="true" {
 		// set a zero session cookie when hitting the login page (federate the login)
 		getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=0;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
 
-		// send a new primary dummy cookie
+		// send a zero primary dummy cookie
 		getPageContext().getResponse().addHeader("Set-Cookie", "#application.dummyCookieOne#=0;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
 
-		// send a new secondary dummy cookie
+		// send a zero secondary dummy cookie
 		getPageContext().getResponse().addHeader("Set-Cookie", "#application.dummyCookieTwo#=0;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
 
-		// send a new tertiary dummy cookie
+		// send a zero tertiary dummy cookie
 		getPageContext().getResponse().addHeader("Set-Cookie", "#application.dummyCookieThree#=0;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
 
 		// lock and clear the sessionObj
@@ -170,6 +170,10 @@ component accessors="true" {
 		// send a new tertiary dummy cookie
 		getPageContext().getResponse().addHeader("Set-Cookie", "#application.dummyCookieThree#=#application.securityService.generateDummyCookieValue( 'HEX' )#;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
 
+		// rotate the cfid/cftoken session to prevent session fixation
+		// NOTE: This does *not* work with J2EE (jsessionid) sessions
+		sessionRotate();
+
 		// and go to the dashboard view
 		variables.fw.redirect( 'main.dashboard' );
 
@@ -189,17 +193,21 @@ component accessors="true" {
 			session.sessionObj = new model.beans.Session();
 		}
 
-		// set a zero session cookie when hitting the login page (federate the login)
+		// set a zero session cookie when logging out (clear the session cookie)
 		getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=0;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
 
-		// send a new primary dummy cookie
+		// send a zero primary dummy cookie
 		getPageContext().getResponse().addHeader("Set-Cookie", "#application.dummyCookieOne#=0;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
 
-		// send a new secondary dummy cookie
+		// send a zero secondary dummy cookie
 		getPageContext().getResponse().addHeader("Set-Cookie", "#application.dummyCookieTwo#=0;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
 
-		// send a new tertiary dummy cookie
+		// send a zero tertiary dummy cookie
 		getPageContext().getResponse().addHeader("Set-Cookie", "#application.dummyCookieThree#=0;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
+
+		// invalidate the cfid/cftoken session
+		// NOTE: This does *not* work with J2EE (jsessionid) sessions
+		sessionInvalidate();
 
 		// go to the login page
 		variables.fw.redirect( action = 'main.default', queryString = 'msg=200' );

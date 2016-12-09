@@ -93,6 +93,10 @@ component {
 			// send a new tertiary dummy cookie
 			getPageContext().getResponse().addHeader("Set-Cookie", "#application.dummyCookieThree#=#application.securityService.generateDummyCookieValue( 'HEX' )#;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
 
+			// rotate the cfid/cftoken session to prevent session fixation
+			// NOTE: This does *not* work with J2EE (jsessionid) sessions
+			sessionRotate();
+
 		}
 
 	}
