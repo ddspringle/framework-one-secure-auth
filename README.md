@@ -20,9 +20,10 @@ This project is an example [fw/1](https://github.com/framework-one/fw1) applicat
 * Includes functions for checking for, adding, removing and importing watched IP's 
 * Managing watched/blocked IPs by catching common parameter tampering/sql injection attacks
 * Added optional `addDate` true/false parameter to uberHash function to append the current date to the input value on hash
-* NEW! 'dummy' cookies for the purpose of further obfuscating which cookie is used for session management
-* NEW! Repeatable form encryption for ajax populated and javascript selected form fields
-* NEW! BaseBean with convenience functions for populating primary key data and CSRF fields in urls and forms (respectively)
+* 'dummy' cookies for the purpose of further obfuscating which cookie is used for session management
+* Repeatable form encryption for ajax populated and javascript selected form fields
+* BaseBean with convenience functions for populating primary key data and CSRF fields in urls and forms (respectively)
+* NEW! Page caching and flushing capabilities added for static views (for [NVCFUG Preso](https://www.meetup.com/nvcfug/events/236791823/)) - use url param `flushCache` to flush
 
 This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and is a good basic starting point if you need to create a secure application using fw/1.
 
@@ -30,7 +31,7 @@ This code has since been expanded multiple times to include additional functiona
 
 ## Compatibility
 
-* Adobe ColdFusion 11+ (now uses some member functions)
+* Adobe ColdFusion 11+
 * Lucee 4.5+
 
 ## Installing
