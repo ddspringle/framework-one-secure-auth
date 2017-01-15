@@ -9,9 +9,9 @@
 component extends="framework.one" {
 
 	this.name = 'secure_auth';
-	this.applicationTimeout = CreateTimeSpan(30, 0, 0, 0);
+	this.applicationTimeout = createTimeSpan( 30, 0, 0, 0 ); // 30 days
 	this.sessionManagement = true;
-	this.sessionTimeout = CreateTimeSpan(0, 0, 30, 0); // 30 minutes
+	this.sessionTimeout = createTimeSpan( 0, 0, 30, 0 ); // 30 minutes
 	this.datasource = 'secureauth';
 	this.scriptprotect = 'all';
 	// CF10+ uncomment the following line to make your cfid/cftoken cookies httpOnly
@@ -181,6 +181,12 @@ component extends="framework.one" {
 		getPageContext().getResponse().addHeader( 'Strict-Transport-Security', 'max-age=31536000; includeSubDomains' );
 		getPageContext().getResponse().addHeader( 'Expires', '-1' );
 		getPageContext().getResponse().addHeader( 'X-Permitted-Cross-Domain-Policies', 'master-only' );
+
+		// check if there is a url variable for flushing the page cache 
+		if( structKeyExists( url, 'flushCache') ) {
+			// there is, flush the page cache
+			cfcache( action='flush' );
+		}
 
 	}
 

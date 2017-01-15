@@ -1,3 +1,5 @@
+<cfcache action="optimal" timespan="#createTimeSpan( 90, 0, 0, 0 )#">
+	
 	<div class="row">
 		<div class="col-md-12"><h1>Secure Auth Example</h1></div>
 	</div>
@@ -75,3 +77,5 @@
 		<div class="col-md-8">
 		</div>
 	</div>
+
+</cfcache>
