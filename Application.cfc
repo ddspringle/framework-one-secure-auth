@@ -21,6 +21,20 @@ component extends="framework.one" {
 		usingSubsystems = true
 	};
 
+	// set application specific variables - one of 'dev' (default), 'test' or 'prod'
+	// The 'prod' (production) environment is the only one that executes IP watching and blocking.
+	// This helps prevent being added to the watched or blocked IP list while
+	// in development or testing. NOTE: You can specify any other environments here,
+	// such as QA, or rename any other environment except 'prod' as needed
+	// You can also specify environment specific framework settings here.
+	// See the Environment Control section of the FW/1 Developing Applications Manual:
+	// https://github.com/framework-one/fw1/wiki/Developing-Applications-Manual
+	variables.framework.environments = {
+		dev = {},
+		test = {},
+		prod = {}
+	}
+
 	/**
 	* @displayname setupApplication
 	* @description I'm run by fw/1 during onApplicationStart() to configure application level settings
@@ -132,33 +146,38 @@ component extends="framework.one" {
 	* @description I'm run by fw/1 during onRequestStart() to configure request level settings
 	*/	
 	function setupRequest() {
-		
+
 		// get the http request headers
 		var headers = getHTTPRequestData().headers;
 		var ipAddress = '';
 
-		// check if this server sits behind a load balancer, proxy or firewall
-		if( structKeyExists( headers, 'x-forwarded-for' ) ) {
-			// it does, get the ip address this request has been forwarded for
-			ipAddress = headers[ 'x-forwarded-for' ];
-		// otherwise
-		} else {
-			// it doesn't, get the ip address of the remote client
-			ipAddress = CGI.REMOTE_ADDR;
-		}
+		// check if we're in the production environment 
+		if( findNoCase( 'prod', getEnvironment() ) ) {
 
-		// check if this ip address is blocked
-		if( application.securityService.isBlockedIP( ipAddress ) ) {
-			// it is, redirect here to an HTML page with *no links in the html* 
-			// (bots follow links) if you would prefer to give feedback to the end user
-			// otherwise simply abort further processing
-			location( 'ipBlocked.html', 'false', '301' )
-		}
+			// we are, check if this server sits behind a load balancer, proxy or firewall
+			if( structKeyExists( headers, 'x-forwarded-for' ) ) {
+				// it does, get the ip address this request has been forwarded for
+				ipAddress = headers[ 'x-forwarded-for' ];
+			// otherwise
+			} else {
+				// it doesn't, get the ip address of the remote client
+				ipAddress = CGI.REMOTE_ADDR;
+			}
 
-		// check if the query string contains SQL injection attempts
-		// if sql injection is detected an error is thrown and caught
-		// by home.main.error
-		application.securityService.checkSqlInjectionAttempt( CGI.QUERY_STRING );
+			// check if this ip address is blocked
+			if( application.securityService.isBlockedIP( ipAddress ) ) {
+				// it is, redirect here to an HTML page with *no links in the html* 
+				// (bots follow links) if you would prefer to give feedback to the end user
+				// otherwise simply abort further processing
+				location( 'ipBlocked.html', 'false', '301' )
+			}
+
+			// check if the query string contains SQL injection attempts
+			// if sql injection is detected an error is thrown and caught
+			// by home.main.error
+			application.securityService.checkSqlInjectionAttempt( CGI.QUERY_STRING );
+
+		}
 
 		// check if we're in the 'admin' subsystem
 		if( getSubsystem() eq 'admin' ) {
@@ -188,6 +207,29 @@ component extends="framework.one" {
 			cfcache( action='flush' );
 		}
 
+	}
+
+	/**
+	* @displayname getEnvironment
+	* @description I'm run by fw/1 during onRequest() to configure environment specific settings
+	*/	
+	public function getEnvironment() {
+
+		var hostname = CGI.SERVER_NAME;
+
+		// check if the hostname contains 'sa' (our demo site) or 'www'
+		if( reFindNoCase( '(sa|www)', listFirst( hostname, '.' ) ) ) {
+			// it does, this is a production server, return 'prod'
+			return 'prod';
+		// otherwise, check if the hostname contains 'test'
+		} else if( reFindNoCase( '(test)', listFirst( hostname, '.' ) ) ) {
+			// it does, this is a development server, return 'dev'
+			return 'test';
+		// otherwise
+		} else {
+			// assume this is a development server, return 'dev'
+			return 'dev';
+		}
 	}
 
 }
