@@ -118,7 +118,7 @@ component displayname="SecurityService" accessors="true" {
 			switch( arguments.mode ) {
 
 				// database
-				case 'db':			
+				case 'db':
 					// using database encryption, encrypt with the first set of keys and algorithm
 					onepass = encrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
 					// and again with the second set of keys and algorithm
@@ -128,7 +128,7 @@ component displayname="SecurityService" accessors="true" {
 				break;
 
 				// repeatable database
-				case 'repeatable':				
+				case 'repeatable':
 					// using repeatable database encryption, encrypt with the first set of keys and algorithm
 					onepass = encrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
 					// and again with the second set of keys and algorithm
