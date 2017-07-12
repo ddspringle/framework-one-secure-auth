@@ -131,12 +131,7 @@ component extends="framework.one" {
 		// *
 		// 'abort' - this simply aborts all further processing 
 		// 'redirect' - this redirects to the ipBlocked.html file (default)
-		// 'reflect' - this reflects the request back to the originator
 		// *
-		// if an ip address is blocked (due to nefarious activities) 
-		// you can 'fight back' by using reflection. Reflection simply
-		// redirects the request back to the ip address it came from 
-		// using a 301 redirect.
 		application.blockMode = 'redirect';
 
 	}
@@ -187,12 +182,6 @@ component extends="framework.one" {
 					case 'redirect':
 						// redirect the browser to an html page for notification
 						location( '/ipBlocked.html', 'false', '302' );
-					break;
-
-					// reflect
-					case 'reflect':
-						// reflect the browser back to itself
-						location( 'http://#rc.ipAddress#/', 'false', '301' );
 					break;
 
 					// abort

@@ -206,12 +206,6 @@ component accessors="true" {
 						location( '/ipBlocked.html', 'false', '302' );
 					break;
 
-					// reflect
-					case 'reflect':
-						// reflect the browser back to itself
-						location( 'http://#rc.ipAddress#/', 'false', '301' );
-					break;
-
 					// abort
 					default:
 						abort;
