@@ -197,8 +197,27 @@ component accessors="true" {
 			if( findNoCase( 'SQLInjection', request.exception.cause.type ) ) {
 				// sql injection attempt detected, add this ip address to the blocked ip list
 				application.securityService.addBlockedIP( ipAddress = rc.ipAddress, reason = request.exception.cause.message );
-				// redirect the browser to an html page for notification
-				location( '/ipBlocked.html', 'false', '302' );
+
+				// switch on the block mode
+				switch( application.blockMode ) {
+					// redirect
+					case 'redirect':
+						// redirect the browser to an html page for notification
+						location( '/ipBlocked.html', 'false', '302' );
+					break;
+
+					// reflect
+					case 'reflect':
+						// reflect the browser back to itself
+						location( 'http://#rc.ipAddress#/', 'false', '301' );
+					break;
+
+					// abort
+					default:
+						abort;
+					break;
+				}
+
 			}
 
 			// check for parameter tampering

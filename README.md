@@ -24,7 +24,8 @@ This project is an example [fw/1](https://github.com/framework-one/fw1) applicat
 * Added repeatable form encryption for ajax populated and javascript selected form fields
 * Added BaseBean with convenience functions for populating primary key data and CSRF fields in urls and forms (respectively)
 * Added page caching and flushing capabilities added for static views (for [NVCFUG Preso](https://www.meetup.com/nvcfug/events/236791823/)) - use url param `flushCache` to flush
-* NEW! Added fw1 environment control and check for the `prod` (production) environment before running IP watching or blocking routines
+* Added fw1 environment control and check for the `prod` (production) environment before running IP watching or blocking routines
+* NEW! Added configurable block mode - one of abort, redirect or reflect. Abort simply aborts further processing for blocked IP's. Redirect works as it did before this release, redirecting to the ipBlocked.html file. Reflect redirects the user back to the originating ip address.
 
 This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and is a good basic starting point if you need to create a secure application using fw/1.
 

@@ -125,6 +125,20 @@ component extends="framework.one" {
 		// to the blocked ip list.
 		application.blockIpThreshold = 15;
 
+		// choose the way an ip address that is in the blocklist
+		// is handled by the application. One of three modes are
+		// available:
+		// *
+		// 'abort' - this simply aborts all further processing 
+		// 'redirect' - this redirects to the ipBlocked.html file (default)
+		// 'reflect' - this reflects the request back to the originator
+		// *
+		// if an ip address is blocked (due to nefarious activities) 
+		// you can 'fight back' by using reflection. Reflection simply
+		// redirects the request back to the ip address it came from 
+		// using a 301 redirect.
+		application.blockMode = 'redirect';
+
 	}
 
 	/**
@@ -166,10 +180,27 @@ component extends="framework.one" {
 
 			// check if this ip address is blocked
 			if( application.securityService.isBlockedIP( ipAddress ) ) {
-				// it is, redirect here to an HTML page with *no links in the html* 
-				// (bots follow links) if you would prefer to give feedback to the end user
-				// otherwise simply abort further processing
-				location( 'ipBlocked.html', 'false', '301' )
+
+				// switch on the block mode
+				switch( application.blockMode ) {
+					// redirect
+					case 'redirect':
+						// redirect the browser to an html page for notification
+						location( '/ipBlocked.html', 'false', '302' );
+					break;
+
+					// reflect
+					case 'reflect':
+						// reflect the browser back to itself
+						location( 'http://#rc.ipAddress#/', 'false', '301' );
+					break;
+
+					// abort
+					default:
+						abort;
+					break;
+				}
+
 			}
 
 			// check if the query string contains SQL injection attempts
