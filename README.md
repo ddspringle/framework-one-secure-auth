@@ -66,7 +66,7 @@ _If **using** 2FA_:
 
 You can view single factor authentication using this code live at https://sa.vsgcom.net/
 
-You can view two-factor authentication using this code [currently down] at https://tfa.vsgcom.net/
+You can view two-factor authentication using this code live at https://tfa.vsgcom.net/
 
 ## Bugs and Feature Requests
 
