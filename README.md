@@ -25,7 +25,9 @@ This project is an example [fw/1](https://github.com/framework-one/fw1) applicat
 * Added BaseBean with convenience functions for populating primary key data and CSRF fields in urls and forms (respectively)
 * Added page caching and flushing capabilities added for static views (for [NVCFUG Preso](https://www.meetup.com/nvcfug/events/236791823/)) - use url param `flushCache` to flush
 * Added fw1 environment control and check for the `prod` (production) environment before running IP watching or blocking routines
-* NEW! Added configurable block mode - one of abort or redirect. Abort simply aborts further processing for blocked IP's. Redirect works as it did before this release, redirecting to the ipBlocked.html file.
+* Added configurable block mode - one of abort or redirect. Abort simply aborts further processing for blocked IP's. Redirect works as it did before this release, redirecting to the ipBlocked.html file.
+* NEW! Migrated to new Application.cfc FW/1 initialization model
+* NEW! **BREAKING CHANGE** The two factor authentication code from our two-factor example has been rolled into this code as of 7/24/2017. You can turn on 2FA in the Application.cfc (off by default to maintain backwards compatibility). Code prior to this release has been moved to the `legacy` branch.
 
 This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and is a good basic starting point if you need to create a secure application using fw/1.
 
@@ -39,20 +41,32 @@ This code has since been expanded multiple times to include additional functiona
 ## Installing
 
 1. Drop the code into your favorite CFML engine's webroot OR install using [CommandBox](https://www.ortussolutions.com/products/commandbox) using the command `box install fw1-sa`
-2. Create a database and generate the user database table (MSSQL SQL provided in the 'database' folder)
+2. Create a database and generate the users and smsProviders database tables (MSSQL SQL and Excel data provided in the 'database' folder)
 3. Create a datasource for your database in your CFML engine's admin
 4. Configure an object cache, if one is not already defined (Railo/Lucee)
-5. Modify encryption keyring location and master key in Application.cfc
-6. Modify cookieName and timeoutSession variables in Application.cfc
+5. Configure a mail server in your CFML engine's admin
+6. Modify variables in Application.cfc as needed (see notes in Application.cfc)
 7. Browse to webroot and enjoy!
+
+## Upgrading
+
+**NOTE** If you are running a version of fw1-sa without the 2FA integration already, then you'll need to complete the following steps before updating to the latest master branch:
+
+_If **not** using 2FA_:
+
+1. Modify your users table to include `providerId` and `phone` as additional fields before updating
+
+_If **using** 2FA_:
+
+1. Modify your users table as above 
+2. Add the smsProviders table and import the included data
+3. Assign sms provider id's and phone numbers to existing users *(this must be done before switching 2FA on else users will not be able to authenticate)*
 
 ## Demo
 
-You can view this code live at https://sa.vsgcom.net/
+You can view single factor authentication using this code live at https://sa.vsgcom.net/
 
-## Other implementations
-
-* [Two-Factor Authentication Example](https://github.com/ddspringle/framework-one-two-factor-auth)
+You can view two-factor authentication using this code [currently down] at https://tfa.vsgcom.net/
 
 ## Bugs and Feature Requests
 
