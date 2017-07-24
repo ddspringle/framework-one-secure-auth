@@ -113,21 +113,8 @@ component extends="framework.one" {
 	*/	
 	public function getEnvironment() {
 
-		var hostname = CGI.SERVER_NAME;
+		return application.securityService.getEnvironment();
 
-		// check if the hostname contains 'sa' (our demo site) or 'www'
-		if( reFindNoCase( '(sa|www)', listFirst( hostname, '.' ) ) ) {
-			// it does, this is a production server, return 'prod'
-			return 'prod';
-		// otherwise, check if the hostname contains 'test'
-		} else if( reFindNoCase( '(test)', listFirst( hostname, '.' ) ) ) {
-			// it does, this is a development server, return 'dev'
-			return 'test';
-		// otherwise
-		} else {
-			// assume this is a development server, return 'dev'
-			return 'dev';
-		}
 	}
 
 }

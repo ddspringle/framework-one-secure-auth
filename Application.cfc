@@ -1,10 +1,10 @@
 component {
 
-    this.name = 'secure_auth';
+    this.name = 'secure_auth_combined';
     this.applicationTimeout = createTimeSpan( 30, 0, 0, 0 ); // 30 days
     this.sessionManagement = true;
     this.sessionTimeout = createTimeSpan( 0, 0, 30, 0 ); // 30 minutes
-    this.datasource = 'secureauth';
+    this.datasource = 'twofactorauth';
     this.scriptprotect = 'all';
     // CF10+ uncomment the following line to make your cfid/cftoken cookies httpOnly
     // this.sessioncookie.httpOnly;
@@ -47,16 +47,10 @@ component {
         // ex: keyRingPath = '/opt/secure/keyrings/' & hash( 'secure_auth', 'MD5', 'UTF-8', 420 ) & '.bin'
         // this path should be accessible *only* to the user the CFML application server is
         // running under and to root/Administrator users
-        
         application.securityService = new model.services.SecurityService(
-            keyRingPath = expandPath( '../keyrings/' ) & hash( 'secure_auth_keyring', 'MD5', 'UTF-8', 173 ) & '.bin',
-            masterKey = mid( lCase( hash( 'secure_auth_master_key', 'SHA-512', 'UTF-8', 512 ) ), 38, 22 ) & '=='
-        );
-
-        /*application.securityService = new model.services.SecurityService(
             keyRingPath = expandPath( 'keyrings/' ) & hash( 'secure_auth_keyring', 'MD5', 'UTF-8', 173 ) & '.bin',
             masterKey = mid( lCase( hash( 'secure_auth_master_key', 'SHA-512', 'UTF-8', 512 ) ), 38, 22 ) & '=='
-        );*/
+        );
 
         // use the SecurityService to read the encryption keys from disk
         application.keyRing = application.securityService.readKeyRingFromDisk();
@@ -82,6 +76,13 @@ component {
         }
 
         // (re)initialize the SecurityService with the keyring
+        // NOTE: To avoid being forced to login every time the framework 
+        // is reloaded (reload=true), the 'hmacKey' value below is set to a 
+        // static HMAC key instead of creating a new one each time.
+        // This is randomized (using 'generateSecretKey( 'HMACSHA512' )')
+        // in production for increased security, but can be static in development
+        // to avoid the cookies being improperly signed on reload.
+        // You should change this HMAC key in your environment.
         application.securityService = application.securityService.init( 
             encryptionKey1          = application.keyRing[1].key,
             encryptionAlgorithm1    = application.keyRing[1].alg,
@@ -92,7 +93,7 @@ component {
             encryptionKey3          = application.keyRing[3].key,
             encryptionAlgorithm3    = application.keyRing[3].alg,
             encryptionEncoding3     = application.keyRing[3].enc,
-            hmacKey                 = generateSecretKey( 'HMACSHA512' ),
+            hmacKey                 = generateSecretKey( 'HMACSHA512' ),//( ( application.securityService.getEnvironment() eq 'prod' ) ? generateSecretKey( 'HMACSHA512' ) : '1Srai7KJK/oUD/pNHvaCJdb5JLJfyPOOjIyYSLvttJs0PaA9HskfJlz2YsXjyokh4fDTC0utupQ4SREklCCZ4w==' ),
             hmacAlgorithm           = 'HMACSHA512',
             hmacEncoding            = 'UTF-8'
         );
@@ -139,22 +140,40 @@ component {
         // 'redirect' - this redirects to the ipBlocked.html file (default)
         // *
         application.blockMode = 'redirect';
+	
+    	// configure if this application will use two factor authentication
+    	// two factor authentication uses the users SMS Provider and telephone
+    	// number to send an authorization code as a second security factor
+    	// for logging into the application.
+        // NOTE: Registration depends on this being set to either true or false 
+        // If set to false, the providerId will be set to zero (0) and the 
+        // phone number will be blank. If you turn on TFA after users have 
+        // registered, they will not be able to login until these values 
+        // are assigned in the database.
+    	application.use2FA = false;
         
+        // fire off framework one's method
         return _get_framework_one().onApplicationStart();
     }
+
     function onError( exception, event ) {
         return _get_framework_one().onError( exception, event );
     }
+
     function onRequest( targetPath ) {
         return _get_framework_one().onRequest( targetPath );
     }
+
     function onRequestEnd() {
         return _get_framework_one().onRequestEnd();
     }
+
     function onRequestStart( targetPath ) {
         return _get_framework_one().onRequestStart( targetPath );
     }
+
     function onSessionStart() {
         return _get_framework_one().onSessionStart();
     }
+
 }

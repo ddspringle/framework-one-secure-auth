@@ -11,6 +11,7 @@ component accessors="true" {
 	property beanFactory;
 	property formatterService;
 	property userService;
+	property smsProviderService;
 	//property mailService;
 
 	/**
@@ -59,6 +60,12 @@ component accessors="true" {
 			rc.message = '';
 		}
 
+		// check if we're using two factor authentication
+		if( application.use2FA ) {
+			// we are, get the list of SMS providers to select from
+			rc.qGetSmsProviders = smsProviderService.filter( isActive = true, orderby = 'provider', cache = true, cacheTime = CreateTimeSpan( 1, 0, 0, 0 ) );
+		}
+
 	}
 
 	/**
@@ -70,6 +77,12 @@ component accessors="true" {
 		var qGetUser = '';
 		var fieldList = 'username,password,confirm,firstName,lastName';
 		var ix = 0;
+		
+		// check if we're using two factor authentication
+		if( application.use2FA ) {
+			// we are, add to the list of required fields
+			fieldList &= ',providerId,phone';
+		}
 
 		// loop through fields
 		for( ix = 1; ix <= listLen( fieldList ); ix++ ) {
@@ -99,10 +112,12 @@ component accessors="true" {
 		rc.userObj = userService.getUserById( 0 );
 
 		// populate the user object encrypting and hashing as needed
+		rc.userObj.setProviderId( rc.providerId );
 		rc.userObj.setUsername( application.securityService.dataEnc( rc.username, 'repeatable' ) );
 		rc.userObj.setPassword( application.securityService.dataEnc( hash( rc.password, 'SHA-384' ), 'db' ) );
 		rc.userObj.setFirstName( application.securityService.dataEnc( encodeForHTML( rc.firstName ), 'db' ) );
 		rc.userObj.setLastName( application.securityService.dataEnc( encodeForHTML( rc.lastName ), 'db' ) );
+		rc.userObj.setPhone( application.securityService.dataEnc( reReplace( rc.phone, '[^0-9]', '', 'ALL' ), 'db' ) );
 		rc.userObj.setRole( 0 );
 		rc.userObj.setIsActive( 1 );
 
@@ -172,7 +187,7 @@ component accessors="true" {
 	public void function error( rc ) {
 
 		// check if we're in a production environment 
-		if( findNoCase( 'prod', request._fw1.theFramework.getEnvironment() ) ) {
+		if( findNoCase( 'prod', application.securityService.getEnvironment() ) ) {
 
 			// we are, get the http request headers
 			rc.headers = getHTTPRequestData().headers;
@@ -248,10 +263,7 @@ component accessors="true" {
 				location( '/ipFlagged.html', 'false', '302' );
 			}
 
-		} else {
-			writeDump( request._fw1.theFramework.getEnvironment() );
-			abort;
-		}// end checking if we're in a production environment
+		} // end checking if we're in a production environment
 
 	}
 }

@@ -62,6 +62,31 @@
 							</label>
 							<input type="text" class="form-control" name="lastName" id="lastName" placeholder="Smith" required>
 						</div>
+						<cfif application.use2FA> 
+							<div class="form=group">
+								&nbsp;
+							</div>
+							<div class="form-group">
+								<label for="phone">
+									Phone Number
+								</label>
+								<input type="text" class="form-control" name="phone" id="phone" placeholder="9999999999" required>
+							</div>
+							<div class="form-group">
+								<label for="providerId">
+									Phone Carrier
+								</label>
+								<select name="providerId" class="form-control" required>
+									<option value="">--== Choose your carrier ==--</option>
+									<cfoutput query="rc.qGetSmsProviders">
+										<option value="#rc.qGetSmsProviders.providerId#">#rc.qGetSmsProviders.provider#</option>
+									</cfoutput>
+								</select>
+							</div>
+						<cfelse>
+							<input type="hidden" name="phone" value="" />
+							<input type="hidden" name="providerId" value="0" />
+						</cfif>
 						<button type="submit" class="btn btn-success">
 							Register
 						</button>

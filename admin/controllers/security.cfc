@@ -36,7 +36,7 @@ component {
 	*/  
 	function authorize( rc ) {
 
-		var actionArr = [ 'admin:main.default', 'admin:main.authenticate' ];
+		var actionArr = [ 'admin:main.default', 'admin:main.authenticate', 'admin:main.twofactor', 'admin:main.authfactor' ];
 
 		// check if we're already logging in
 		if( !arrayFind( actionArr, rc.action )) {
@@ -66,6 +66,12 @@ component {
 			if( session.sessionObj.getUserId() EQ 0 ) {
 				// it isn't, redirect to the login page
 				variables.fw.redirect( action = 'main.default', queryString = "msg=502" );            
+			}
+
+			// check if the second factor is required and has been completed
+			if( application.use2FA and !session.sessionObj.getIsAuthenticated() ) {
+				// it hasn't, redirect to the login page
+				variables.fw.redirect( action = 'main.default', queryString = "msg=507" );
 			}
 
 			// lock the session and rotate the session id (for every request)

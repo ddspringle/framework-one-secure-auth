@@ -1438,4 +1438,60 @@ component displayname="SecurityService" accessors="true" {
 		return urlEncodedFormat( encrypt( lcase( hash( createUUID() & now(), 'SHA-512', 'UTF-8', 1000 ) ), generateSecretKey('AES'), 'AES/CTR/PKCS5Padding', arguments.encoding ) );
 	}
 
+	/**
+	* @displayname getEnvironment
+	* @description I return the environment within which this code is executing
+	*/	
+	public function getEnvironment( boolean clearCache = false ) {
+
+		// get the environment from cache
+		var environment = cacheGet( 'deployed_environment_cache' );
+
+		// check if the cached value is empty or if we're purposefully clearing the cache
+		if( isNull( environment ) or arguments.clearCache ) {
+
+			// we are, switch on hostname of the server (e.g. www, sa, tfa, etc.)
+			switch( listFirst( CGI.SERVER_NAME, '.' ) ) {
+
+				// check if the hostname contains 'sa' or 'tfa' (our demo sites) or 'www'
+				// use any other method of determining if this is the production server 
+				// you need (e.g. checking the IP address of the server, for example )
+				case 'sa': 
+				case 'tfa':
+				case 'www':
+					// it does, this is a production server, set the environment to 'prod'
+					environment = 'prod';
+				break;
+				
+				// otherwise, check if the hostname contains 'test'
+				// you can put any other environments using any other methods
+				// you need in this if/else block
+				case 'test':
+					// it does, this is a test server, set the environment to 'test'
+					environment = 'test';
+				break;
+			
+				// otherwise
+				default:
+					// assume this is a development server, set the environment to 'dev'
+					environment = 'dev';
+				break;
+			}
+
+			// check if we're clearing the cache 
+			if( arguments.clearCache ) {
+				// we are, remove the old cached value
+				cacheRemove( 'deployed_environment_cache' );
+			}
+
+			// put the new cached environment value into the cache
+			cachePut( 'deployed_environment_cache', environment, createTimeSpan( 1, 0, 0, 0 ), createTimeSpan( 0, 12, 0, 0 ) );
+
+		}
+
+		// return the environment value
+		return environment;
+		
+	}
+
 }

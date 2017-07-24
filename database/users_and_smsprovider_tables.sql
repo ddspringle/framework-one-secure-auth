@@ -1,4 +1,4 @@
-USE [secureauth]
+USE [twofactorauth]
 GO
 
 SET ANSI_NULLS ON
@@ -10,12 +10,23 @@ GO
 SET ANSI_PADDING ON
 GO
 
+CREATE TABLE [dbo].[smsProviders](
+	[providerId] [int] IDENTITY(1,1) NOT NULL,
+	[provider] [varchar](255) NOT NULL,
+	[email] [varchar](255) NOT NULL,
+	[isActive] [bit] NOT NULL
+) ON [PRIMARY]
+
+GO
+
 CREATE TABLE [dbo].[users](
 	[userId] [int] IDENTITY(1,1) NOT NULL,
+	[providerId] [int] NOT NULL,
 	[username] [varchar](max) NOT NULL,
 	[password] [varchar](max) NOT NULL,
 	[firstName] [varchar](max) NOT NULL,
 	[lastName] [varchar](max) NOT NULL,
+	[phone] [varchar](max) NOT NULL,
 	[role] [int] NOT NULL,
 	[isActive] [bit] NOT NULL,
  CONSTRAINT [PK_users] PRIMARY KEY CLUSTERED 
@@ -23,10 +34,12 @@ CREATE TABLE [dbo].[users](
 	[userId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
-
 GO
 
 SET ANSI_PADDING OFF
+GO
+
+ALTER TABLE [dbo].[smsProviders] ADD  CONSTRAINT [DF_smsProviders_isActive]  DEFAULT ((1)) FOR [isActive]
 GO
 
 ALTER TABLE [dbo].[users] ADD  CONSTRAINT [DF_users_role]  DEFAULT ((0)) FOR [role]

@@ -9,6 +9,8 @@
 component accessors="true" {
 
 	property userService;
+	property smsProviderService;
+	property mailService;
 
 	/**
 	* @displayname init
@@ -57,6 +59,10 @@ component accessors="true" {
 				rc.message = 'Account is disabled. Please contact your system administrator.';
 			} else if( rc.msg eq 200 ) {
 				rc.message = "You have been successfully logged out.";
+			} else if( rc.msg eq 410 ) {
+				rc.message = 'Second factor was not provided. Please login again.';
+			} else if( rc.msg eq 411 ) {
+				rc.message = 'Second factor does not match. Please login again.';
 			} else {
 				rc.message = 'Your session has timed out. Please log in again to continue.';
 			}
@@ -158,6 +164,12 @@ component accessors="true" {
 			);
 		}
 
+		// check if we're using two factor authentication
+		if( application.use2FA ) {
+			// we are, send the mfa code to this user for this session
+			mailService.sendMfaCode( phone = application.securityService.dataDec( qGetUser.phone, 'db' ), providerEmail = variables.smsProviderService.getSmsProviderById( qGetUser.providerId ).getEmail(), mfaCode = session.sessionObj.getMfaCode() );
+		}
+
 		// set the session cookie with the new encrypted session id
 		getPageContext().getResponse().addHeader("Set-Cookie", "#application.cookieName#=#application.securityService.setSessionIdForCookie( session.sessionObj.getSessionId() )#;path=/;domain=#listFirst( CGI.HTTP_HOST, ':' )#;HTTPOnly");
 
@@ -173,12 +185,63 @@ component accessors="true" {
 		// rotate the cfid/cftoken session to prevent session fixation
 		// NOTE: This does *not* work with J2EE (jsessionid) sessions
 		sessionRotate();
+		// check if we're using two factor authentication
+		if( application.use2FA ) {
+			// we are, go to the twofactor view
+			variables.fw.redirect( 'main.twofactor' );
+		// otherwise
+		} else {
+			// we're not, go to the dashboard view
+			variables.fw.redirect( 'main.dashboard' );
+		}
+
+	}
+	
+	/**
+	* @displayname twofactor
+	* @description I present the two-factor view
+	*/
+	public void function twofactor( rc ) {
+
+		// disable the admin layout since the two-factor page has it's own html
+		variables.fw.disableLayout();
+
+		// set a title for the login page to render
+		rc.title = 'Secure Authentication Sign In &raquo; Second Factor';
+
+	}
+
+	/**
+	* @displayname authfactor
+	* @description I authenticate the second factor
+	*/
+	public void function authfactor( rc ) {
+
+		if( !structKeyExists( rc, 'twofactor' ) OR !len( rc.twofactor ) ) {
+			// they don't match, redirect to the login page
+			variables.fw.redirect( action = 'main.default', queryString = 'msg=410' );
+		}
+
+		// ensure the CSRF token is provided and valid
+		if( !structKeyExists( rc, 'f' & application.securityService.uberHash( 'token', 'SHA-512', 1700 ) ) OR !CSRFVerifyToken( rc[ 'f' & application.securityService.uberHash( 'token', 'SHA-512', 1700 ) ] ) ) {
+			// it doesn't, redirect to the login page
+			variables.fw.redirect( action = 'main.default', queryString = 'msg=510' );
+		}
+
+		if( compareNoCase( rc.twofactor, session.sessionObj.getMfaCode() ) NEQ 0 ) {
+			variables.fw.redirect( action = 'main.default', queryString = 'msg=411' );
+		}
+
+		// lock the session scope and create a sessionObj for this user
+		lock scope='session' timeout='10' {
+			session.sessionObj.setMfaCode( '' );
+			session.sessionObj.setIsAuthenticated( true );
+		}
 
 		// and go to the dashboard view
 		variables.fw.redirect( 'main.dashboard' );
 
 	}
-
 	/**
 	* @displayname logout
 	* @description I clear session data and present the login view
