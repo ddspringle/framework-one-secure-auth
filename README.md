@@ -1,6 +1,6 @@
 # FW/1 Secure Authentication Example
 
-This project is an example [fw/1](https://github.com/framework-one/fw1) application with secure single and two-factor authentication and session management functions as follows:
+This project is an example [fw/1](https://github.com/framework-one/fw1) application with secure single and two-factor (2FA) authentication and session management functions as follows:
 
 * Based on basic example [fw/1](https://github.com/framework-one/fw1) application
 * Uses subsystems for separation of concerns, securing only the `admin` subsystem
@@ -28,7 +28,7 @@ This project is an example [fw/1](https://github.com/framework-one/fw1) applicat
 * Includes configurable block mode - one of abort or redirect. Abort simply aborts further processing for blocked IP's. Redirect works as it did before this release, redirecting to the `ipBlocked.html` file.
 * NEW! Migrated to new `Application.cfc` FW/1 initialization model
 * NEW! Improved HMAC key management to prevent development reloads from forcing the user to re-login (for non-production environments)
-* NEW! **BREAKING CHANGE** The two factor authentication code from our two-factor example has been rolled into this code as of 7/24/2017. You can turn on 2FA in the `Application.cfc` (off by default to maintain backwards compatibility). Code prior to this release has been moved to the `legacy` branch.
+* NEW! **BREAKING CHANGE** The two factor (2FA) authentication code from our two-factor example has been rolled into this code as of 7/24/2017. You can turn on 2FA in the `Application.cfc` (off by default to maintain backwards compatibility). Code prior to this release has been moved to the `legacy` branch.
 
 This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and has since been transformed into a concise starting point for developers who need to create a secure application using the [fw/1](https://github.com/framework-one/fw1) CFML MVC framework.
 
