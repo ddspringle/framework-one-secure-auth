@@ -43,8 +43,8 @@ This code has been expanded multiple times to include additional functionality n
 
 1. Drop the code into your favorite CFML engine's webroot OR install using [CommandBox](https://www.ortussolutions.com/products/commandbox) using the command `box install fw1-sa`
 2. Create a database and generate the users and smsProviders database tables (MSSQL SQL and Excel data provided in the 'database' folder)
-3. Create a datasource for your database in your CFML engine's admin
-4. Configure an object cache, if one is not already defined (Railo/Lucee)
+3. Create a datasource called `twofactorauth` for your database in your CFML engine's admin (or change in `Application.cfc`)
+4. Configure an object cache, if one is not already defined (or, optionally, add it to `Application.cfc` if running Lucee 5.x+)
 5. Configure a mail server in your CFML engine's admin
 6. Move the `keyrings` folder to a location outside your webroot
 7. Modify the default `developmentHmacKey` value in `Application.cfc` (use `generateSecretKey( 'HMACSHA512' )`)
