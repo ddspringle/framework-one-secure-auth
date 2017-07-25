@@ -50,26 +50,31 @@ This code has been expanded multiple times to include additional functionality n
 7. Modify the default `developmentHmacKey` value in `Application.cfc` (use `generateSecretKey( 'HMACSHA512' )`)
 8. Change the `keyRingPath` location to where you moved the `keyrings` folder to in `Application.cfc`
 9. Provide a unique value for the hashed name of the keyring file in `Application.cfc` (instead of `secure_auth_keyring`)
-10. Provide a unique value for the hashed name of the master key in `Application.cfc` (instead of `secure_auth_master_key`)
-11. Provide unique values for the `cookieName` and `dummyCookieOne`, `dummyCookieTwo` and `dummyCookieThree` values in `Application.cfc`
-11. Modify remaining application variables in `Application.cfc` as needed (see notes in `Application.cfc`)
-12. Browse to webroot to launch the application and generate a unique set of encryption keys in your keyring
-13. Modify the `check if the keyring is a valid array of keys` statement in `Application.cfc` to prevent regeneration of a new keyring file after initial launch. See notes in `Application.cfc`.
-14. Register an account, login and enjoy!
+10. Change the hash iterations for the hashed keyring file name from the default value of `173` to some other integer number of iterations in `Application.cfc`
+11. Provide a unique value for the hashed name of the master key in `Application.cfc` (instead of `secure_auth_master_key`)
+12. Change the hash iterations for the hashed master key from the default value of `512` to some other integer number of iterations in `Application.cfc`
+13. Change the starting location for the `mid()` function of the hashed master key to start at a position other than `38` in a range from `1` to `106`
+14. Provide unique values for the `cookieName` and `dummyCookieOne`, `dummyCookieTwo` and `dummyCookieThree` values in `Application.cfc`
+15. Modify remaining application variables in `Application.cfc` as needed (see notes in `Application.cfc`)
+16. Browse to webroot to launch the application and generate a unique set of encryption keys in your keyring
+17. Modify the `check if the keyring is a valid array of keys` statement in `Application.cfc` to prevent regeneration of a new keyring file after initial launch. See notes in `Application.cfc`.
+18. Register an account, login and enjoy!
 
 ## Upgrading
 
 **NOTE** If you are currently running a version of fw1-sa without the 2FA integration, then you'll need to complete the following steps before updating to the latest master branch:
 
-_If **not** using 2FA_:
+_If **not using** 2FA_:
 
-1. Modify your users table to include `providerId` and `phone` as additional fields before updating
+1. Preserve a copy of your existing `Application.cfc` (or `MyApplication.cfc` if included in your distribution) so you can copy values for keyring and other application variables as needed.
+2. Modify your users table to include `providerId` and `phone` as additional fields before updating
 
 _If **using** 2FA_:
 
-1. Modify your users table as above 
-2. Add the smsProviders table and import the included data
-3. Assign sms provider id's and phone numbers to existing users *(this must be done before switching 2FA on else users will not be able to authenticate)*
+1. Preserve a copy of your existing `Application.cfc` (or `MyApplication.cfc` if included in your distribution) so you can copy values for keyring and other application variables as needed.
+2. Modify your users table as above 
+3. Add the smsProviders table and import the included data
+4. Assign sms provider id's and phone numbers to existing users *(this must be done before switching 2FA on else users will not be able to authenticate)*
 
 ## Demo
 
