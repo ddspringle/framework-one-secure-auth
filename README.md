@@ -48,7 +48,7 @@ This code has been expanded multiple times to include additional functionality n
 5. Configure a mail server in your CFML engine's admin
 6. Move the `keyrings` folder to a location outside your webroot
 7. Modify the default `developmentHmacKey` value in `Application.cfc` (use `generateSecretKey( 'HMACSHA512' )`)
-8. Change the `keyRingPath` location to where you moved the `keyrings` folder to
+8. Change the `keyRingPath` location to where you moved the `keyrings` folder to in `Application.cfc`
 9. Provide a unique value for the hashed name of the keyring file in `Application.cfc` (instead of `secure_auth_keyring`)
 10. Provide a unique value for the hashed name of the master key in `Application.cfc` (instead of `secure_auth_master_key`)
 11. Provide unique values for the `cookieName` and `dummyCookieOne`, `dummyCookieTwo` and `dummyCookieThree` values in `Application.cfc`
