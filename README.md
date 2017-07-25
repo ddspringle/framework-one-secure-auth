@@ -14,21 +14,21 @@ This project is an example [fw/1](https://github.com/framework-one/fw1) applicat
 * Stores user data in encrypted format in the database
 * Default CBC/PKCS5Padding defined for encryption algorithms
 * Includes HTTP security headers designed to reduce attack surface
-* Uses keyring stored on disk to load encryption keys instead of hard-coded in the Application.cfc
+* Uses keyring stored on disk to load encryption keys instead of hard-coded in the `Application.cfc`
 * Includes functions for reading, writing and generating a random keyring file
 * Includes functions for checking for, adding, removing and importing blocked IP's
 * Includes functions for checking for, adding, removing and importing watched IP's 
-* Managing watched/blocked IPs by catching common parameter tampering/sql injection attacks
-* Added optional `addDate` true/false parameter to uberHash function to append the current date to the input value on hash
-* Added 'dummy' cookies for the purpose of further obfuscating which cookie is used for session management
-* Added repeatable form encryption for ajax populated and javascript selected form fields
-* Added BaseBean with convenience functions for populating primary key data and CSRF fields in urls and forms (respectively)
-* Added page caching and flushing capabilities added for static views (for [NVCFUG Preso](https://www.meetup.com/nvcfug/events/236791823/)) - use url param `flushCache` to flush
-* Added fw1 environment control and check for the `prod` (production) environment before running IP watching or blocking routines
-* Added configurable block mode - one of abort or redirect. Abort simply aborts further processing for blocked IP's. Redirect works as it did before this release, redirecting to the ipBlocked.html file.
-* NEW! Migrated to new Application.cfc FW/1 initialization model
+* Includes functions for managing watched/blocked IPs by catching common parameter tampering/sql injection attacks
+* Includes optional `addDate` true/false parameter to uberHash function to append the current date to the input value on hash
+* Includes 'dummy' cookies for the purpose of further obfuscating which cookie is used for session management
+* Includes repeatable form encryption for ajax populated and javascript selected form fields
+* Includes BaseBean with convenience functions for populating primary key data and CSRF fields in urls and forms (respectively)
+* Includes page caching and flushing capabilities added for static views (for [NVCFUG Preso](https://www.meetup.com/nvcfug/events/236791823/)) - use url param `flushCache` to flush
+* Includes fw1 environment control and check for the `prod` (production) environment before running IP watching or blocking routines
+* Includes configurable block mode - one of abort or redirect. Abort simply aborts further processing for blocked IP's. Redirect works as it did before this release, redirecting to the `ipBlocked.html` file.
+* NEW! Migrated to new `Application.cfc` FW/1 initialization model
 * NEW! Improved HMAC key management to prevent development reloads from forcing the user to re-login (for non-production environments)
-* NEW! **BREAKING CHANGE** The two factor authentication code from our two-factor example has been rolled into this code as of 7/24/2017. You can turn on 2FA in the Application.cfc (off by default to maintain backwards compatibility). Code prior to this release has been moved to the `legacy` branch.
+* NEW! **BREAKING CHANGE** The two factor authentication code from our two-factor example has been rolled into this code as of 7/24/2017. You can turn on 2FA in the `Application.cfc` (off by default to maintain backwards compatibility). Code prior to this release has been moved to the `legacy` branch.
 
 This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and has since been transformed into a concise starting point for developers who need to create a secure application using the [fw/1](https://github.com/framework-one/fw1) CFML MVC framework.
 
@@ -48,15 +48,18 @@ This code has been expanded multiple times to include additional functionality n
 5. Configure a mail server in your CFML engine's admin
 6. Move the `keyrings` folder to a location outside your webroot
 7. Modify the default `developmentHmacKey` value in `Application.cfc` (use `generateSecretKey( 'HMACSHA512' )`)
-8. Change the `keyRingPath` location to where you moved the `keyrings` folder from
+8. Change the `keyRingPath` location to where you moved the `keyrings` folder to
 9. Provide a unique value for the hashed name of the keyring file in `Application.cfc` (instead of `secure_auth_keyring`)
 10. Provide a unique value for the hashed name of the master key in `Application.cfc` (instead of `secure_auth_master_key`)
+11. Provide unique values for the `cookieName` and `dummyCookieOne`, `dummyCookieTwo` and `dummyCookieThree` values in `Application.cfc`
 11. Modify remaining application variables in `Application.cfc` as needed (see notes in `Application.cfc`)
-12. Browse to webroot and enjoy!
+12. Browse to webroot to launch the application and generate a unique set of encryption keys in your keyring
+13. Modify the `check if the keyring is a valid array of keys` statement in `Application.cfc` to prevent regeneration of a new keyring file after initial launch. See notes in `Application.cfc`.
+14. Register an account, login and enjoy!
 
 ## Upgrading
 
-**NOTE** If you are running a version of fw1-sa without the 2FA integration already, then you'll need to complete the following steps before updating to the latest master branch:
+**NOTE** If you are currently running a version of fw1-sa without the 2FA integration, then you'll need to complete the following steps before updating to the latest master branch:
 
 _If **not** using 2FA_:
 
@@ -84,7 +87,7 @@ This project is actively being maintained and monitored by Denard Springle. If y
 
 ## Attribution
 
-This project utilizes the free open source MVC CFML (ColdFusion) framework  [Framework One (fw/1)](https://github.com/framework-one/fw1) by [Sean Corfield](https://twitter.com/seancorfield).
+This project utilizes the free open source MVC CFML (ColdFusion) framework [Framework One (fw/1)](https://github.com/framework-one/fw1) by [Sean Corfield](https://twitter.com/seancorfield).
 
 ## License
 
