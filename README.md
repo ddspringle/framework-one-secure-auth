@@ -1,11 +1,11 @@
 # FW/1 Secure Authentication Example
 
-This project is an example [fw/1](https://github.com/framework-one/fw1) application with secure authentication and session management functions as follows:
+This project is an example [fw/1](https://github.com/framework-one/fw1) application with secure single and two-factor authentication and session management functions as follows:
 
 * Based on basic example [fw/1](https://github.com/framework-one/fw1) application
-* Uses subsystems for separation of concerns, securing only the 'admin' subsystem
+* Uses subsystems for separation of concerns, securing only the `admin` subsystem
 * Includes a SecurityService component that has encryption, decryption, hashing, password generation and session management code
-* Includes a security controller for managing session and request scope session management within the 'admin' subsystem
+* Includes a security controller for managing session and request scope session management within the `admin` subsystem
 * Uses cookies and object cache for session management
 * Includes HMAC protection for session cookies to help prevent tampering
 * Rotates the session id on each request and utilizes form tokenization to help prevent CSRF
@@ -27,11 +27,12 @@ This project is an example [fw/1](https://github.com/framework-one/fw1) applicat
 * Added fw1 environment control and check for the `prod` (production) environment before running IP watching or blocking routines
 * Added configurable block mode - one of abort or redirect. Abort simply aborts further processing for blocked IP's. Redirect works as it did before this release, redirecting to the ipBlocked.html file.
 * NEW! Migrated to new Application.cfc FW/1 initialization model
+* NEW! Improved HMAC key management to prevent development reloads from forcing the user to re-login (for non-production environments)
 * NEW! **BREAKING CHANGE** The two factor authentication code from our two-factor example has been rolled into this code as of 7/24/2017. You can turn on 2FA in the Application.cfc (off by default to maintain backwards compatibility). Code prior to this release has been moved to the `legacy` branch.
 
-This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and is a good basic starting point if you need to create a secure application using fw/1.
+This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and has since been transformed into a concise starting point for developers who need to create a secure application using the [fw/1](https://github.com/framework-one/fw1) CFML MVC framework.
 
-This code has since been expanded multiple times to include additional functionality not shown during the initial presentation. More details on how (and why) these security functions work and are important can be gleaned from reading the ColdFusion Security documents on [CFDocs](http://cfdocs.org/security) and from reviewing the SecurityService.cfc in /model/services/ which has been expanded for content.
+This code has been expanded multiple times to include additional functionality not shown during the initial presentation. More details on how (and why) these security functions work and are important can be gleaned from reading the ColdFusion Security documents on [CFDocs](http://cfdocs.org/security) and from reviewing the SecurityService.cfc in /model/services/ which has been expanded for content. The code is ripe with comments to help aid in understanding how and why security features have been implemented and should be easy to pick up and run with for anyone with a passing familiarity of [fw/1](https://github.com/framework-one/fw1).
 
 ## Compatibility
 
@@ -45,8 +46,13 @@ This code has since been expanded multiple times to include additional functiona
 3. Create a datasource for your database in your CFML engine's admin
 4. Configure an object cache, if one is not already defined (Railo/Lucee)
 5. Configure a mail server in your CFML engine's admin
-6. Modify variables in Application.cfc as needed (see notes in Application.cfc)
-7. Browse to webroot and enjoy!
+6. Move the `keyrings` folder to a location outside your webroot
+7. Modify the default `developmentHmacKey` value in `Application.cfc` (use `generateSecretKey( 'HMACSHA512' )`)
+8. Change the `keyRingPath` location to where you moved the `keyrings` folder from
+9. Provide a unique value for the hashed name of the keyring file in `Application.cfc` (instead of `secure_auth_keyring`)
+10. Provide a unique value for the hashed name of the master key in `Application.cfc` (instead of `secure_auth_master_key`)
+11. Modify remaining application variables in `Application.cfc` as needed (see notes in `Application.cfc`)
+12. Browse to webroot and enjoy!
 
 ## Upgrading
 
