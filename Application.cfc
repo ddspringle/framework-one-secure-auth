@@ -41,6 +41,11 @@ component {
     // delegation of lifecycle methods to FW/1:
     function onApplicationStart() {
 
+        // provide a static HMAC key using generateSecretKey( 'HMACSHA512' )
+        // to be used in development environments where application reload
+        // forcing re-login is undesireable (currently any environment other than 'prod')
+        application.developmentHmacKey = '1Srai7KJK/oUD/pNHvaCJdb5JLJfyPOOjIyYSLvttJs0PaA9HskfJlz2YsXjyokh4fDTC0utupQ4SREklCCZ4w==';
+
         // load and initialize the SecurityService with keyring path and master key
         // NOTE: The keyRingPath should be placed in a secure directory *outside* of  
         // your web root to prevent key disclosure over the internet. 
@@ -48,7 +53,7 @@ component {
         // this path should be accessible *only* to the user the CFML application server is
         // running under and to root/Administrator users
         application.securityService = new model.services.SecurityService(
-            keyRingPath = expandPath( 'C:/websites/keyrings/' ) & hash( 'secure_auth_keyring', 'MD5', 'UTF-8', 173 ) & '.bin',
+            keyRingPath = expandPath( 'keyrings/' ) & hash( 'secure_auth_keyring', 'MD5', 'UTF-8', 173 ) & '.bin',
             masterKey = mid( lCase( hash( 'secure_auth_master_key', 'SHA-512', 'UTF-8', 512 ) ), 38, 22 ) & '=='
         );
 
@@ -93,7 +98,7 @@ component {
             encryptionKey3          = application.keyRing[3].key,
             encryptionAlgorithm3    = application.keyRing[3].alg,
             encryptionEncoding3     = application.keyRing[3].enc,
-            hmacKey                 = ( ( application.securityService.getEnvironment() eq 'prod' ) ? generateSecretKey( 'HMACSHA512' ) : '1Srai7KJK/oUD/pNHvaCJdb5JLJfyPOOjIyYSLvttJs0PaA9HskfJlz2YsXjyokh4fDTC0utupQ4SREklCCZ4w==' ),
+            hmacKey                 = ( ( application.securityService.getEnvironment() eq 'prod' ) ? generateSecretKey( 'HMACSHA512' ) : application.developmentHmacKey ),
             hmacAlgorithm           = 'HMACSHA512',
             hmacEncoding            = 'UTF-8'
         );
