@@ -813,6 +813,65 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
+	/**
+	* @displayname	rekeyKeyRing
+	* @description	I rekey the keyring file
+	* @param		oldKey {String} I am the old key used to encrypt the keyring file (default: currently defined master key)
+	* @param 		newKey {String} required - I am the new key to use to encrypt the keyring file
+	* @return		boolean
+	*/
+	private boolean function rekeyKeyRing( string oldKey = '', required string newKey ) {
+
+		var currentKey = variables.masterKey;
+		var keyRing = '';
+
+		// check if the keyring file exists
+		if( !fileExists( variables.keyRingPath ) ) {
+
+			// it doesn't exist, return false
+			return false;
+
+		}
+
+		// check if the oldKey is provided 
+		if( !len( arguments.oldKey ) ) {
+			// it isn't, assign to the current master key
+			arguments.oldKey = currentKey;
+		}
+
+		// try 
+		try {
+
+			// ensure the master key matches the old key used to encrypt the keyring
+			variables.masterKey = arguments.oldKey;
+
+			// and get the JSON as an array
+			keyRing = deserializeJSON( dataDec( charsetEncode( fileReadBinary( variables.keyRingPath ), 'utf-8' ), 'master' ) );
+
+			// ensure the master key matches the new key to use to encrypt the keyring
+			variables.masterKey = arguments.newKey;
+
+			// and write the keyring file to disk
+			fileWrite( variables.keyRingPath, charsetDecode( dataEnc( serializeJSON( keyRing ), 'master' ), 'utf-8' ) );
+
+			// set the master key back to the original key
+			variables.masterKey = currentKey;
+
+		// catch any errors (e.g. decryption)
+		} catch( any e ) {
+			// set the master key back to the original key 
+			variables.masterKey = currentKey;
+			// uncomment the following line to diagnose the issue
+			// writeDump( e ); abort;
+			// and return false
+			return false;
+		}
+
+		// all went well, return true
+		return true;
+
+	}
+
 	/* IP BLOCKING 
 
 		This section of the security service provides functions to

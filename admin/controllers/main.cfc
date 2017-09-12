@@ -83,19 +83,7 @@ component accessors="true" {
 	* @displayname dashboard
 	* @description I present the dashbaord view
 	*/ 
-	public void function dashboard( rc ) {
-
-		rc.product = server.coldfusion.productname;
-
-		if( findNoCase( 'lucee', rc.product ) ) {
-			rc.version = server.lucee.version;
-		} else if( findNoCase( 'railo', rc.product ) ) {
-			rc.version = server.railo.version;			
-		} else {
-			rc.version = listFirst( server.coldfusion.productversion );
-		}
-
-	}
+	public void function dashboard( rc ) {}
 
 	/**
 	* @displayname authenticate

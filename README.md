@@ -26,9 +26,12 @@ This project is an example [fw/1](https://github.com/framework-one/fw1) applicat
 * Includes page caching and flushing capabilities added for static views (for [NVCFUG Preso](https://www.meetup.com/nvcfug/events/236791823/)) - use url param `flushCache` to flush
 * Includes fw1 environment control and check for the `prod` (production) environment before running IP watching or blocking routines
 * Includes configurable block mode - one of abort or redirect. Abort simply aborts further processing for blocked IP's. Redirect works as it did before this release, redirecting to the `ipBlocked.html` file.
-* NEW! Migrated to new `Application.cfc` FW/1 initialization model
-* NEW! Improved HMAC key management to prevent development reloads from forcing the user to re-login (for non-production environments)
-* NEW! **BREAKING CHANGE** The two factor (2FA) authentication code from our two-factor example has been rolled into this code as of 7/24/2017. You can turn on 2FA in the `Application.cfc` (off by default to maintain backwards compatibility). Code prior to this release has been moved to the `legacy` branch.
+* Migrated to new `Application.cfc` FW/1 initialization model
+* Improved HMAC key management to prevent development reloads from forcing the user to re-login (for non-production environments)
+* **BREAKING CHANGE** The two factor (2FA) authentication code from our two-factor example has been rolled into this code as of 7/24/2017. You can turn on 2FA in the `Application.cfc` (off by default to maintain backwards compatibility). Code prior to this release has been moved to the `legacy` branch.
+* NEW! **BREAKING CHANGE** As of 9/12/2017 the keyring master key now uses a PBKDF key on Lucee 5+ and ACF 11+ engines by default instead of legacy hashing to further enhance the security of the keyring. A new function `rekeyKeyRing()` has been added to the SecurityService to aid in rekeying your keyring for this change (and rekeying it in general) if upgrading from a previous release. You may alternatively uncomment a line in `Application.cfc` to force legacy master key usage. Please see additional notes in the `Application.cfc` for further details. Lucee 4.5 will continue to use the legacy hashing of the master key.
+* NEW! **BREAKING CHANGE** The keyring path and the master key are now defined in their own variables in the application scope instead of being hard-coded in the initialization of the security service. These are now BASE64 encoded to aid in obfuscating the key and filename in case of code disclosure. If upgrading from a previous release you will need to BASE64 encode your master keyphrase and filename and replace the new default one in `Application.cfc`. Please see additional notes in the `Application.cfc` for further details.
+* NEW! **BREAKING CHANGE** The dashboard controller has removed the `rc.product` and `rc.version` variables definitions and the dashboard view now uses the engine and engine version information derived from the application scope
 
 This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and has since been transformed into a concise starting point for developers who need to create a secure application using the [fw/1](https://github.com/framework-one/fw1) CFML MVC framework.
 
@@ -49,16 +52,17 @@ This code has been expanded multiple times to include additional functionality n
 6. Move the `keyrings` folder to a location outside your webroot
 7. Modify the default `developmentHmacKey` value in `Application.cfc` (use `generateSecretKey( 'HMACSHA512' )`)
 8. Change the `keyRingPath` location to where you moved the `keyrings` folder to in `Application.cfc`
-9. Provide a unique value for the hashed name of the keyring file in `Application.cfc` (instead of `secure_auth_keyring`)
-10. Change the hash iterations for the hashed keyring file name from the default value of `173` to some other integer number of iterations in `Application.cfc`
-11. Provide a unique value for the hashed name of the master key in `Application.cfc` (instead of `secure_auth_master_key`)
-12. Change the hash iterations for the hashed master key from the default value of `512` to some other integer number of iterations in `Application.cfc`
-13. Change the starting location for the `mid()` function of the hashed master key to start at a position other than `38` in a range from `1` to `106`
-14. Provide unique values for the `cookieName` and `dummyCookieOne`, `dummyCookieTwo` and `dummyCookieThree` values in `Application.cfc`
-15. Modify remaining application variables in `Application.cfc` as needed (see notes in `Application.cfc`)
-16. Browse to webroot to launch the application and generate a unique set of encryption keys in your keyring
-17. Modify the `check if the keyring is a valid array of keys` statement in `Application.cfc` to prevent regeneration of a new keyring file after initial launch. See notes in `Application.cfc`.
-18. Register an account, login and enjoy!
+9. Change the hash iterations for the hashed keyring file name from the default value of `173` to some other integer number of iterations in `Application.cfc`
+10. Provide a unique BASE64 encoded value for the application password in `Application.cfc` (instead of `c2VjdXJlX2F1dGhfbWFzdGVyX2tleQ==`)
+11. Provide a unique BASE64 encoded value for the application sale in `Application.cfc` (instead of `UnRUcFBBS1hOQmgwem9XYg==`)
+12. Provide a unique BASE64 encoded value for the keyring filename in `Application.cfc` (instead of `c2VjdXJlX2F1dGhfa2V5cmluZw==`)
+13. Change the hash iterations for the hashed master key from the default value of `512` to some other integer number of iterations in `Application.cfc`
+14. Change the starting location for the `mid()` function of the hashed master key to start at a position other than `38` in a range from `1` to `106`
+15. Provide unique values for the `cookieName` and `dummyCookieOne`, `dummyCookieTwo` and `dummyCookieThree` values in `Application.cfc`
+16. Modify remaining application variables in `Application.cfc` as needed (see notes in `Application.cfc`)
+17. Browse to webroot to launch the application and generate a unique set of encryption keys in your keyring
+18. Modify the `check if the keyring is a valid array of keys` statement in `Application.cfc` to prevent regeneration of a new keyring file after initial launch. See notes in `Application.cfc`.
+19. Register an account, login and enjoy!
 
 ## Upgrading
 

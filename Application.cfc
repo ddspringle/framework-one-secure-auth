@@ -41,20 +41,125 @@ component {
     // delegation of lifecycle methods to FW/1:
     function onApplicationStart() {
 
+        // Lucee 5+ added the function generatePBKDFKey() which is a much 
+        // more secure way of handling the keyring master key than the 
+        // legacy hashing routine this code previously used. To maintain 
+        // backwards compatibility with Lucee 4.5, a few hoops have been 
+        // introduced to determine which version of the Lucee engine is in 
+        // use, and select the appropriate routine (PBKDF or legacy) based 
+        // on the version information.
+
+        // If you'll be using Lucee 5+, then you can remove the code below 
+        // that applies only if Lucee is running v4.5. Likewise, if you're 
+        // using Lucee 4.5 then you can remove the code below that applies 
+        // only if Lucee is running v5+.
+
+        // NOTE: toBase64(), toBinary() and toString() are used in lieu if using
+        // charsetDecode() and charsetEncode() to aid in obfuscating
+        // sensitive data in case of accidental code disclosure
+        // This is not security, it is simply obfuscation that would
+        // confuse only those who are not programmers themselves
+
+        // set use of PBKDF master key to false
+        application.usePBKDF = false;
+
+        // define a password for the application's master key
+        // defined using toBase64( 'secure_auth_master_key', 'UTF-8' )
+        // which provides some obfuscation if this code ever leaks
+        // define your own password using the same technique
+        application.password = toBinary( 'c2VjdXJlX2F1dGhfbWFzdGVyX2tleQ==' );
+
+        // define the salt to use with PBKDF
+        // defined using toBase64( 'RtTpPAKXNBh0zoWb', 'UTF-8' )
+        // which provides some obfuscation if this code ever leaks
+        // define your own salt using the same technique
+        // salt should be a minimum of 16 chars (128 bits) long
+        application.salt = toBinary( 'UnRUcFBBS1hOQmgwem9XYg==' );
+
+        // define the keyring filename to use
+        // defined using toBase64( 'secure_auth_keyring', 'UTF-8' )
+        // which provides some obfuscation if this code ever leaks
+        // define your own keyring filename using the same technique
+        application.keyRingFilename = toBinary( 'c2VjdXJlX2F1dGhfa2V5cmluZw==' );        
+
+        // set the path to the keyring file location on disk
+        // NOTE: The keyRingPath should be placed in a secure directory *outside* of  
+        // your web root to prevent key disclosure over the internet.
+        // this path should be accessible *only* to the user the CFML application server is
+        // running under and to root/Administrator users
+        // you can change the number of hash iterations (173 by default) to further
+        // distinguish this application from others using this framework example 
+        // ex: keyRingPath = expandPath( '/opt/secure/keyrings/' ) & hash( 'toString( application.keyRingFilename, 'UTF-8' ), 'MD5', 'UTF-8', 420 ) & '.bin'
+        application.keyRingPath = expandPath( 'keyrings/' ) & hash( toString( application.keyRingFilename, 'UTF-8' ), 'MD5', 'UTF-8', 173 ) & '.bin';
+
+        // get the engine we're currently deployed on
+        application.engine = server.coldfusion.productname;
+
+        // check if we're using Lucee
+        if( findNoCase( 'lucee', application.engine ) ) {
+            // we are, get the version of lucee we're running
+            application.engineVersion = server.lucee.version;
+            // check if it is version 5 or above
+            if( listFirst( application.engineVersion, '.' ) gte 5 ) {
+                // it is, we can use a PBKDF master key
+                application.usePBKDF = true;
+            }
+        // otherwise, check if we're running Railo
+        } else if( findNoCase( 'railo', application.engine ) ) {
+            // we are, get the version of Railo we're running
+            application.engineVersion = server.railo.version;
+        // otherwise, assume we're running ACF
+        } else {
+            // get the version of ACF we're running
+            application.engineVersion = listFirst( server.coldfusion.productversion );
+            // check if it is version 11 or above
+            if( listFirst( application.engineVersion ) gte 11 ) {
+                // it is, we can use a PBKDF master key
+                application.usePBKDF = true;
+            }
+        }
+
+        // NOTE: If upgrading from a previous release that already has 
+        // a generated and used keyring file, and you are running Lucee 5+
+        // or ACF 11+, then you risk either generating a new keyring file, 
+        // or throwing a decryption error, as this version will try to use  
+        // PBKDF for the master key instead of legacy hashing of previous versions. 
+        // You can either first rekey your keyring using the new PBKDF master
+        // key and then proceed (see function rekeyKeyRing() in model/services/SecurityService.cfc),
+        // or you can uncomment the following line to prevent these conditions 
+        // by forcing the use of the legacy master key
+
+        // application.usePBKDF = false;
+
+        // check if we can use a PBKDF master key
+        if( application.usePBKDF ) {
+            // we can, generate the master key using PBKDF
+            // in addition to differences in passwords and salts used
+            // you can change the algorithm (PBKDF2WithHmacSHA1 by default)
+            // and the number of iterations (2048 by default) to futher distinguish
+            // this application from others using this framework example
+            application.masterKey = generatePBKDFKey( 'PBKDF2WithHmacSHA1', toString( application.password, 'UTF-8' ), toString( application.salt, 'UTF-8' ), 2048, 128 );
+        // otherwise
+        } else {
+            // we cannot, generate the master key using legacy hashing
+            // in addition to differences in passwords used
+            // you can change the hash algorithm (SHA-512 by default)
+            // the number of iterations (512 by default) and the 
+            // starting position of the mid() statement (38 by default - range from 1 to 106 with SHA-512)
+            // to further distinguish this application from others using this
+            // framework example
+            application.masterKey = mid( lCase( hash( toString( application.password, 'UTF-8' ), 'SHA-512', 'UTF-8', 512 ) ), 38, 22 ) & '==';
+        }
+
         // provide a static HMAC key using generateSecretKey( 'HMACSHA512' )
         // to be used in development environments where application reload
         // forcing re-login is undesireable (currently any environment other than 'prod')
         application.developmentHmacKey = '1Srai7KJK/oUD/pNHvaCJdb5JLJfyPOOjIyYSLvttJs0PaA9HskfJlz2YsXjyokh4fDTC0utupQ4SREklCCZ4w==';
 
         // load and initialize the SecurityService with keyring path and master key
-        // NOTE: The keyRingPath should be placed in a secure directory *outside* of  
-        // your web root to prevent key disclosure over the internet. 
-        // ex: keyRingPath = '/opt/secure/keyrings/' & hash( 'secure_auth', 'MD5', 'UTF-8', 420 ) & '.bin'
-        // this path should be accessible *only* to the user the CFML application server is
-        // running under and to root/Administrator users
         application.securityService = new model.services.SecurityService(
-            keyRingPath = expandPath( 'keyrings/' ) & hash( 'secure_auth_keyring', 'MD5', 'UTF-8', 173 ) & '.bin',
-            masterKey = mid( lCase( hash( 'secure_auth_master_key', 'SHA-512', 'UTF-8', 512 ) ), 38, 22 ) & '=='
+            keyRingPath = application.keyRingPath,
+            masterKey = application.masterKey
         );
 
         // use the SecurityService to read the encryption keys from disk
@@ -103,6 +208,18 @@ component {
             hmacEncoding            = 'UTF-8'
         );
 
+        // clear the password from the application scope
+        structDelete( application, 'password' );
+
+        // clear the salt from the application scope
+        structDelete( application, 'salt' );
+
+        // clear the keyring filename from the application scope
+        structDelete( application, 'keyRingFilename' );
+
+        // clear the keyring path from the application scope
+        structDelete( application, 'keyRingPath' );
+
         // clear the keyring from the application scope
         structDelete( application, 'keyRing' );
 
@@ -138,7 +255,7 @@ component {
         application.blockIpThreshold = 15;
 
         // choose the way an ip address that is in the blocklist
-        // is handled by the application. One of three modes are
+        // is handled by the application. One of two modes are
         // available:
         // *
         // 'abort' - this simply aborts all further processing 
