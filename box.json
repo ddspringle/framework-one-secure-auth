@@ -1,7 +1,7 @@
 {
     "name" : "framework-one-secure-auth",
     "slug" : "fw1-sa",
-    "version" : "3.0.0",
+    "version" : "3.0.1",
     "author" : "Denard Springle <denard.springle@gmail.com>",
     "location" : "https://github.com/ddspringle/framework-one-secure-auth/archive/master.zip",
     "Homepage" : "https://github.com/ddspringle/framework-one-secure-auth",

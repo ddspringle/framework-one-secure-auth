@@ -96,26 +96,26 @@ component accessors="true" {
 
 		// check if the host and referrer match (federate the login)
 		if( !findNoCase( CGI.HTTP_HOST, CGI.HTTP_REFERER ) ) {
-			// they don't, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=503' );		
+			// they don't, redirect to the logout page
+			variables.fw.redirect( action = 'main.logout', queryString = 'msg=503' );		
 		}
 
 		// check if the session cookie exists (federate the login)
 		if( !structKeyExists( cookie, application.cookieName ) ) {
-			// it doesn't, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=504' );			
+			// it doesn't, redirect to the logout page
+			variables.fw.redirect( action = 'main.logout', queryString = 'msg=504' );			
 		}
 
 		// ensure a username and password were sent
 		if( !len( rc.username ) OR !len( rc.password ) ) {
-			// they weren't, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=500' );
+			// they weren't, redirect to the logout page
+			variables.fw.redirect( action = 'main.logout', queryString = 'msg=500' );
 		}
 
 		// ensure the CSRF token is provided and valid
 		if( !structKeyExists( rc, 'f' & application.securityService.uberHash( 'token', 'SHA-512', 150 ) ) OR !CSRFVerifyToken( rc[ 'f' & application.securityService.uberHash( 'token', 'SHA-512', 150 ) ] ) ) {
-			// it doesn't, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=505' );
+			// it doesn't, redirect to the logout page
+			variables.fw.redirect( action = 'main.logout', queryString = 'msg=505' );
 		}
 
 		// get the user from the database by encrypted username
@@ -123,14 +123,14 @@ component accessors="true" {
 
 		// check if there is a record for the passed username
 		if( !qGetUser.recordCount ) {
-			// there isn't, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=404' );
+			// there isn't, redirect to the logout page
+			variables.fw.redirect( action = 'main.logout', queryString = 'msg=404' );
 		}
 
 		// check to be sure this user has an active account
 		if( !qGetUser.isActive ) {
-			// they don't, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=555' );
+			// they don't, redirect to the logout page
+			variables.fw.redirect( action = 'main.logout', queryString = 'msg=555' );
 		}
 
 		// hash the users stored password with the passed heartbeat for comparison
@@ -138,8 +138,8 @@ component accessors="true" {
 
 		// compare the hashed stored password with the passed password
 		if( !findNoCase( hashedPwd, rc.password ) ) {
-			// they don't match, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=403' );
+			// they don't match, redirect to the logout page
+			variables.fw.redirect( action = 'main.logout', queryString = 'msg=403' );
 		}
 
 		// lock the session scope and create a sessionObj for this user
@@ -206,18 +206,18 @@ component accessors="true" {
 	public void function authfactor( rc ) {
 
 		if( !structKeyExists( rc, 'twofactor' ) OR !len( rc.twofactor ) ) {
-			// they don't match, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=410' );
+			// they don't match, redirect to the logout page
+			variables.fw.redirect( action = 'main.logout', queryString = 'msg=410' );
 		}
 
 		// ensure the CSRF token is provided and valid
 		if( !structKeyExists( rc, 'f' & application.securityService.uberHash( 'token', 'SHA-512', 1700 ) ) OR !CSRFVerifyToken( rc[ 'f' & application.securityService.uberHash( 'token', 'SHA-512', 1700 ) ] ) ) {
-			// it doesn't, redirect to the login page
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=510' );
+			// it doesn't, redirect to the logout page
+			variables.fw.redirect( action = 'main.logout', queryString = 'msg=510' );
 		}
 
 		if( compareNoCase( rc.twofactor, session.sessionObj.getMfaCode() ) NEQ 0 ) {
-			variables.fw.redirect( action = 'main.default', queryString = 'msg=411' );
+			variables.fw.redirect( action = 'main.logout', queryString = 'msg=411' );
 		}
 
 		// lock the session scope and create a sessionObj for this user
@@ -260,8 +260,14 @@ component accessors="true" {
 		// NOTE: This does *not* work with J2EE (jsessionid) sessions
 		sessionInvalidate();
 
+		// check if a message was passed into the logout function
+		if( !structKeyExists( rc, 'msg') ) {
+			// it wasn't, regular logout by the user, set the msg to 200
+			rc.msg = 200;
+		}
+
 		// go to the login page
-		variables.fw.redirect( action = 'main.default', queryString = 'msg=200' );
+		variables.fw.redirect( action = 'main.default', queryString = 'msg=' & rc.msg );
 
 	}
 	

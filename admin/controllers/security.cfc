@@ -43,8 +43,8 @@ component {
 
 			// we're not, check if the session cookie is defined
 			if( !structKeyExists( cookie, application.cookieName ) ) {
-				// it isn't, redirect to the login page
-				variables.fw.redirect( action = 'main.default', queryString = "msg=501" );  
+				// it isn't, redirect to the logout page
+				variables.fw.redirect( action = 'main.logout', queryString = "msg=501" );  
 			}
 
 			// try 
@@ -53,8 +53,8 @@ component {
 				rc.sessionId = application.securityService.getSessionIdFromCookie( cookie[ application.cookieName ] );
 			// catch any decryption errors
 			} catch ( any e ) {
-				// decryption failed (invalid cookie value), redirect to the login page
-				variables.fw.redirect( action = 'main.default', queryString = "msg=501" );
+				// decryption failed (invalid cookie value), redirect to the logout page
+				variables.fw.redirect( action = 'main.logout', queryString = "msg=501" );
 			}
 
 			// lock the session and get the sessionObj from the cache
@@ -64,14 +64,14 @@ component {
 
 			// check if the sessionObj returned is valid
 			if( session.sessionObj.getUserId() EQ 0 ) {
-				// it isn't, redirect to the login page
-				variables.fw.redirect( action = 'main.default', queryString = "msg=502" );            
+				// it isn't, redirect to the logout page
+				variables.fw.redirect( action = 'main.logout', queryString = "msg=502" );            
 			}
 
 			// check if the second factor is required and has been completed
 			if( application.use2FA and !session.sessionObj.getIsAuthenticated() ) {
-				// it hasn't, redirect to the login page
-				variables.fw.redirect( action = 'main.default', queryString = "msg=507" );
+				// it hasn't, redirect to the logout page
+				variables.fw.redirect( action = 'main.logout', queryString = "msg=507" );
 			}
 
 			// lock the session and rotate the session id (for every request)
