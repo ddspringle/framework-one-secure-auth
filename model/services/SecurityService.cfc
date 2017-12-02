@@ -1164,7 +1164,7 @@ component displayname="SecurityService" accessors="true" {
 			if( watchedIp.ipAddress eq arguments.ipAddress ) {
 				// it does, so it is watched, set return struct details
 				returnStruct.isWatched = true;
-				returnStruct.totalCount = watchedIp.totalCount
+				returnStruct.totalCount = watchedIp.totalCount;
 			}
 		}
 

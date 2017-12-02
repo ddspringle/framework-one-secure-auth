@@ -92,14 +92,16 @@ component output="false" displayname=""  {
 	*/
 	public string function getEncUid( string format = 'url' ) {
 
+		var cf11fix = 'get' & getPrimaryKey();
+
 		// check if we're using form encrytion format
 		if( arguments.format eq 'form' ) {
 			// we are, return the form encrypted primary key
-			return application.securityService.dataEnc( this[ "get" & getPrimaryKey() ](), 'form' );
+			return application.securityService.dataEnc( this[ cf11fix ](), 'form' );
 		// otherwise
 		} else {
 			// we're using url encryption, return the url encrypted primary key
-			return application.securityService.dataEnc( this[ "get" & getPrimaryKey() ](), 'url' );
+			return application.securityService.dataEnc( this[ cf11fix ](), 'url' );
 		}
 	}
 

@@ -26,7 +26,7 @@ component {
         dev = {},
         test = {},
         prod = {}
-    }
+    };
 
     function _get_framework_one() {
         if ( !structKeyExists( request, '_framework_one' ) ) {

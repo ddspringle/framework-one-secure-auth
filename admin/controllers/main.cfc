@@ -236,8 +236,13 @@ component accessors="true" {
 	*/	
 	public void function logout( rc ) {
 
-		// clear the users session object from cache
-		application.securityService.clearUserSession( session.sessionObj );
+		// check if we have a session object to clear 
+		if( structKeyExists( session, 'sessionObj' ) ) {
+
+			// we do, clear the users session object from cache
+			application.securityService.clearUserSession( session.sessionObj );
+
+		}
 
 		// lock and clear the sessionObj
 		lock scope='session' timeout='10' {			

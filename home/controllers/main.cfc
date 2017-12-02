@@ -45,9 +45,9 @@ component accessors="true" {
 			// and generate a message to be displayed
 			if( rc.msg eq 501 ) {
 				rc.message = 'You must provide a valid value for all fields to register.';
-			} else if( rc.msg = 502 ) {
+			} else if( rc.msg eq 502 ) {
 				rc.message = 'Your password and confirmation password do not match. Please try again.';
-			} else if( rc.msg = 503 ) {
+			} else if( rc.msg eq 503 ) {
 				rc.message = 'A user account already exists for this email address. Please log in.';
 			} else {
 				rc.message = '';

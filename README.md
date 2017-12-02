@@ -39,8 +39,9 @@ This code has been expanded multiple times to include additional functionality n
 
 ## Compatibility
 
-* Adobe ColdFusion 11+
 * Lucee 4.5+
+
+* NOTE: Not currently compatible with Adobe ColdFusion, but expected to be compatible with the next release.
 
 ## Installing
 
