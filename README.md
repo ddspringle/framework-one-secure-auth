@@ -81,12 +81,6 @@ _If **using** 2FA_:
 3. Add the smsProviders table and import the included data
 4. Assign sms provider id's and phone numbers to existing users *(this must be done before switching 2FA on else users will not be able to authenticate)*
 
-[](## Demo)
-
-[](You can view single factor authentication using this code live at https://sa.vsgcom.net/)
-
-[](ou can view two-factor authentication using this code live at https://tfa.vsgcom.net/)
-
 ## Bugs and Feature Requests
 
 If you find any bugs or have a feature you'd like to see implemented in this code, please use the issues area here on GitHub to log them.
