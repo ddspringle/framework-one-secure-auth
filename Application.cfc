@@ -273,6 +273,22 @@ component {
         // registered, they will not be able to login until these values 
         // are assigned in the database.
     	application.use2FA = false;
+
+        // configure if the application will reject hacked passwords on
+        // system password generation and password changes by the user
+        // This is set to 'false' by default to maintain backwards compatibility
+        // however it is recommended that you turn this feature on by setting
+        // this value to 'true' instead.
+        application.rejectHackedPasswords = false;
+
+        // set the path to the top 100,000 hacked password list
+        // you can replace this list with any list you choose. The format
+        // of the file should be a single password entry per line. Lines
+        // can be terminated with a cariage-return and linefeed combined, a linefeed
+        // only or a carriage-return only.
+        // Additional password files can be downloaded from:
+        // https://github.com/danielmiessler/SecLists/tree/master/Passwords
+        application.passwordFilePath = expandPath( 'data/top_100000_hacked_passwords.txt' );
         
         // fire off framework one's method
         return _get_framework_one().onApplicationStart();

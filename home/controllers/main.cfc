@@ -49,6 +49,10 @@ component accessors="true" {
 				rc.message = 'Your password and confirmation password do not match. Please try again.';
 			} else if( rc.msg eq 503 ) {
 				rc.message = 'A user account already exists for this email address. Please log in.';
+			} else if( rc.msg eq 504 ) {
+				rc.message = 'Your password cannot be the same or similar to your email address. Please try another password.';
+			} else if( rc.msg eq 505 ) {
+				rc.message = 'The password you have chosen is known to be a disclosed password available to hackers. If you are using this password with any other services then we strongly suggest you change your password with those services. Please try another password.';
 			} else {
 				rc.message = '';
 			}
@@ -95,8 +99,8 @@ component accessors="true" {
 
 		// check if the password and confirmation are the same 
 		if( compareNoCase( rc.password, rc.confirm ) NEQ 0 ) {
-				// password mismatch, redirect to registration page
-				variables.fw.redirect( action = 'main.register', queryString = "msg=502" );			
+			// password mismatch, redirect to registration page
+			variables.fw.redirect( action = 'main.register', queryString = "msg=502" );			
 		}
 
 		// get the user from the database by encrypted username passed in
@@ -106,6 +110,19 @@ component accessors="true" {
 		if( qGetUser.recordCount ) {
 			// user exists, redirect to register page
 			variables.fw.redirect( action = 'main.register', queryString = "msg=503" );			
+		}
+
+		// ensure the password is not found in the username 
+		if( findNoCase( rc.password, rc.username ) ) {
+			// password found in username, redirect to register page
+			variables.fw.redirect( action = 'main.register', queryString = "msg=504" );			
+		}
+
+		// if hacked password checking is enabled, and the  
+		// chosen password is found in the hacked password list
+		if( application.rejectHackedPasswords and application.securityService.isPasswordHacked( rc.password ) ) {
+			// password hacked, redirect to registration page
+			variables.fw.redirect( action = 'main.register', queryString = "msg=505" );			
 		}
 
 		// get a user object to populate

@@ -469,6 +469,13 @@ component displayname="SecurityService" accessors="true" {
 			password &= char;
 		}
 
+		// if hacked password checking is enabled, and this system  
+		// generated password is found in the hacked password list
+		if( application.rejectHackedPasswords and isPasswordHacked( password ) ) {
+			// call this function recursively
+			return getRandomPassword( arguments.length );
+		}
+
 		// return the random password
 		return password;
 
@@ -1551,6 +1558,59 @@ component displayname="SecurityService" accessors="true" {
 		// return the environment value
 		return environment;
 		
+	}
+
+	/**
+	* @displayname getPasswordArray
+	* @description I return an array of the top 100,000 hacked passwords (cached from a file)
+	* @return	   array
+	*/	
+	public array function getPasswordArray() {
+
+		// get the hacked password array from cache
+		var pwdArr = cacheGet( 'top_100000_hacked_passwd' );
+		// set the default delimiter for the file to LF only
+		var delim = chr(10);
+		var pwdFile = '';
+
+		// check if the hacked password array is null (doesn't exist in cache)
+		if( isNull( pwdArr ) ) {
+			// it is, read in the password file
+			pwdFile = fileRead( application.passwordFilePath );
+			// check if the lines are terminated with a CR-LF
+			if( findNoCase( chr(13) & chr(10), pwdFile ) ) {
+				// they are, change the delimiter to CR-LF
+				delim = chr(13) & chr(10);
+			// otherwise, check if the lines are terminated with a LF only
+			} else if( findNoCase( chr(13), pwdFile ) ) {
+				// they are, change the delimited to CR only
+				delim = chr(13);
+			}
+			// convert the file to an array of passwords
+			pwdArr = listToArray( pwdFile, delim );
+			// store the array in the cache for TTL 90 days and ITL 45 days
+			cachePut( 'top_100000_hacked_passwd', pwdArr, createTimeSpan( 90, 0, 0, 0 ), createTimeSpan( 45, 0, 0, 0 ) );
+		}
+
+		// return the password array
+		return pwdArr;
+
+	}
+
+	/**
+	* @displayname isPasswordHacked
+	* @description I return true if the passed in password is found in the hacked password array, false otherwise
+	*/
+	public boolean function isPasswordHacked( required string password ) {
+		// get the password array
+		var pwdArr = getPasswordArray();
+		// check if the passed in password is found in the array
+		if( pwdArr.find( arguments.password ) ) {
+			// it is, return true
+			return true;
+		}
+		// it wasn't found, return false;
+		return false;
 	}
 
 }
