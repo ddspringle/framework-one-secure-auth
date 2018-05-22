@@ -11,12 +11,15 @@ component displayname="SecurityService" accessors="true" {
 	property encryptionKey1;
 	property encryptionAlgorithm1;
 	property encryptionEncoding1;
+	property encryptionIV1;
 	property encryptionKey2;
 	property encryptionAlgorithm2;
 	property encryptionEncoding2;
+	property encryptionIV2;
 	property encryptionKey3;
 	property encryptionAlgorithm3;
 	property encryptionEncoding3;
+	property encryptionIV3;
 	property hmacKey;
 	property hmacAlgorithm;
 	property hmacEncoding;
@@ -29,12 +32,15 @@ component displayname="SecurityService" accessors="true" {
 	* @param	encryptionKey1 {String} - I am the encryption key used for pass number 1
 	* @param	encryptionAlgorithm1 {String} - I am the encryption algorithm used for pass number 1
 	* @param	encryptionEncoding1 {String} - I am the encryption encoding used for pass number 1
+	* @param	encryptionIV1 {String} - I am the encryption initialization vector used for pass number 1
 	* @param	encryptionKey2 {String} - I am the encryption key used for pass number 2
 	* @param	encryptionAlgorithm2 {String} - I am the encryption algorithm used for pass number 2
 	* @param	encryptionEncoding2 {String} - I am the encryption encoding used for pass number 2
+	* @param	encryptionIV2 {String} - I am the encryption initialization vector used for pass number 2
 	* @param	encryptionKey3 {String} - I am the encryption key used for pass number 3
 	* @param	encryptionAlgorithm3 {String} - I am the encryption algorithm used for pass number 3
 	* @param	encryptionEncoding3 {String} - I am the encryption encoding used for pass number 3
+	* @param	encryptionIV3 {String} - I am the encryption initialization vector used for pass number 3
 	* @param	hmacKey {String} - I am the key used for hmac hashing
 	* @param	hmacAlgorithm {String} - I am the hashing algorithm used for hmac hashing
 	* @param	hmacEncoding {String} - I am the encoding used for hmac hashing
@@ -46,12 +52,15 @@ component displayname="SecurityService" accessors="true" {
 		string encryptionKey1 = '',
 		string encryptionAlgorithm1 = '',
 		string encryptionEncoding1 = '',
+		string encryptionIV1 = '',
 		string encryptionKey2 = '',
 		string encryptionAlgorithm2 = '',
 		string encryptionEncoding2 = '',
+		string encryptionIV2 = '',
 		string encryptionKey3 = '',
 		string encryptionAlgorithm3 = '',
 		string encryptionEncoding3 = '',
+		string encryptionIV3 = '',
 		string hmacKey = '',
 		string hmacAlgorithm = '',
 		string hmacEncoding = '',
@@ -62,12 +71,15 @@ component displayname="SecurityService" accessors="true" {
 		variables.encryptionKey1 = arguments.encryptionKey1;
 		variables.encryptionAlgorithm1 = arguments.encryptionAlgorithm1;
 		variables.encryptionEncoding1 = arguments.encryptionEncoding1;
+		variables.encryptionIV1 = arguments.encryptionIV1;
 		variables.encryptionKey2 = arguments.encryptionKey2;
 		variables.encryptionAlgorithm2 = arguments.encryptionAlgorithm2;
 		variables.encryptionEncoding2 = arguments.encryptionEncoding2;
+		variables.encryptionIV2 = arguments.encryptionIV2;
 		variables.encryptionKey3 = arguments.encryptionKey3;
 		variables.encryptionAlgorithm3 = arguments.encryptionAlgorithm3;
 		variables.encryptionEncoding3 = arguments.encryptionEncoding3;
+		variables.encryptionIV3 = arguments.encryptionIV3;
 		variables.hmacKey = arguments.hmacKey;
 		variables.hmacAlgorithm = arguments.hmacAlgorithm;
 		variables.hmacEncoding = arguments.hmacEncoding;
@@ -120,21 +132,21 @@ component displayname="SecurityService" accessors="true" {
 				// database
 				case 'db':
 					// using database encryption, encrypt with the first set of keys and algorithm
-					onepass = encrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
+					onepass = encrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1, variables.encryptionIV1 );
 					// and again with the second set of keys and algorithm
-					twopass = encrypt( onepass, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
+					twopass = encrypt( onepass, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2, variables.encryptionIV2 );
 					// and again with the third set of keys and algorithm
-					lastPass = encrypt( twopass, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
+					lastPass = encrypt( twopass, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3, variables.encryptionIV3 );
 				break;
 
 				// repeatable database
 				case 'repeatable':
 					// using repeatable database encryption, encrypt with the first set of keys and algorithm
-					onepass = encrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
+					onepass = encrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1, variables.encryptionIV1 );
 					// and again with the second set of keys and algorithm
-					twopass = encrypt( onepass, variables.encryptionKey2,  listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2 );
+					twopass = encrypt( onepass, variables.encryptionKey2,  listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2, variables.encryptionIV2 );
 					// and again with the third set of keys and algorithm
-					lastPass = encrypt( twopass, variables.encryptionKey3,  listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3);
+					lastPass = encrypt( twopass, variables.encryptionKey3,  listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3, variables.encryptionIV3);
 				break;
 
 				// master
@@ -150,7 +162,7 @@ component displayname="SecurityService" accessors="true" {
 					if( findNoCase( 'BASE64', variables.encryptionEncoding1 ) ) {
 					
 						// we are, encrypt with the first set of keys and repeatable algorithm
-						lastPass = encrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1);
+						lastPass = encrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1, variables.encryptionIV1);
 						// using BASE64 encoding, URL encode the value
 						lastPass = URLEncodedFormat( lastPass );
 					
@@ -158,7 +170,7 @@ component displayname="SecurityService" accessors="true" {
 					} else {
 					
 						// not BASE64 encoded, encrypt with the first set of keys and algorithm
-						lastPass = encrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
+						lastPass = encrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1, variables.encryptionIV1 );
 					
 					// end checking if useing BASE64 encoding on the URL key	
 					}
@@ -167,21 +179,21 @@ component displayname="SecurityService" accessors="true" {
 				// FORM
 				case 'form':
 					// using form encryption, encrypt with the second set of keys and algorithm
-					lastPass = encrypt( arguments.value, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
+					lastPass = encrypt( arguments.value, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2, variables.encryptionIV2 );
 				break;
 
 				// REPEATABLE FORM
 				case 'rform':
 					// using rform encryption, encrypt with the second set of keys and repeatable algorithm
-					onePass = encrypt( arguments.value, variables.encryptionKey2,  listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2 );
+					onePass = encrypt( arguments.value, variables.encryptionKey2,  listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2, variables.encryptionIV2 );
 					// and encrypt with the third set of keys and repeatable algorithm
-					lastPass = encrypt( onePass, variables.encryptionKey3,  listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3 );
+					lastPass = encrypt( onePass, variables.encryptionKey3,  listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3, variables.encryptionIV3 );
 				break;
 
 				// COOKIE
 				case 'cookie':
 					// using cookie encryption, encrypt with the first set of keys and algorithm
-					lastPass = encrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
+					lastPass = encrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3, variables.encryptionIV3 );
 				break;
 
 				// default
@@ -242,21 +254,21 @@ component displayname="SecurityService" accessors="true" {
 				// database
 				case 'db':
 					// using database encryption, decrypt with the third set of keys and algorithm
-					var onePass = decrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
+					var onePass = decrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3, variables.encryptionIV3 );
 					// and again with the second set of keys and algorithm
-					var twoPass = decrypt( onepass, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
+					var twoPass = decrypt( onepass, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2, variables.encryptionIV2 );
 					// and again with the first set of keys and algorithm
-					var lastPass = decrypt( twopass, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
+					var lastPass = decrypt( twopass, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1, variables.encryptionIV1 );
 				break;
 
 				// repeatable database
 				case 'repeatable':
 					// using database encryption, decrypt with the third set of keys and algorithm
-					var onePass = decrypt( arguments.value, variables.encryptionKey3, listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3 );
+					var onePass = decrypt( arguments.value, variables.encryptionKey3, listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3, variables.encryptionIV3 );
 					// and again with the second set of keys and algorithm
-					var twoPass = decrypt( onepass, variables.encryptionKey2, listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2 );
+					var twoPass = decrypt( onepass, variables.encryptionKey2, listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2, variables.encryptionIV2 );
 					// and again with the first set of keys and algorithm
-					var lastPass = decrypt( twopass, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
+					var lastPass = decrypt( twopass, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1, variables.encryptionIV1 );
 				break;
 
 				// master
@@ -276,13 +288,13 @@ component displayname="SecurityService" accessors="true" {
 						// replace spaces with +
 						arguments.value = replace( arguments.value, chr(32), '+', 'ALL' );
 						// decrypt with the first set of keys and repeatable algorithm
-						lastPass = decrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1 );
+						lastPass = decrypt( arguments.value, variables.encryptionKey1, listFirst( variables.encryptionAlgorithm1, '/' ), variables.encryptionEncoding1, variables.encryptionIV1 );
 
 					// otherwise
 					} else {
 
 						// not BASE64 encoded, decrypt with the first set of keys and algorithm
-						lastPass = decrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1 );
+						lastPass = decrypt( arguments.value, variables.encryptionKey1, variables.encryptionAlgorithm1, variables.encryptionEncoding1, variables.encryptionIV1 );
 
 					// end checking if useing BASE64 encoding on the URL key	
 					}
@@ -291,21 +303,21 @@ component displayname="SecurityService" accessors="true" {
 				// FORM
 				case 'form':
 					// using form encryption, decrypt with the second set of keys and algorithm
-					lastPass = decrypt( arguments.value, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2 );
+					lastPass = decrypt( arguments.value, variables.encryptionKey2, variables.encryptionAlgorithm2, variables.encryptionEncoding2, variables.encryptionIV2 );
 				break;
 
 				// REPEATABLE FORM
 				case 'rform':
 					// using rform encryption, decrypt with the third set of keys and repeatable algorithm
-					onePass = decrypt( arguments.value, variables.encryptionKey3,  listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3 );
+					onePass = decrypt( arguments.value, variables.encryptionKey3,  listFirst( variables.encryptionAlgorithm3, '/' ), variables.encryptionEncoding3, variables.encryptionIV3 );
 					// and decrypt with the second set of keys and repeatable algorithm
-					lastPass = decrypt( onePass, variables.encryptionKey2,  listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2 );
+					lastPass = decrypt( onePass, variables.encryptionKey2,  listFirst( variables.encryptionAlgorithm2, '/' ), variables.encryptionEncoding2, variables.encryptionIV2 );
 				break;
 
 				// COOKIE
 				case 'cookie':
 					// using cookie encryption, decrypt with the first set of keys and algorithm
-					lastPass = decrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3 );
+					lastPass = decrypt( arguments.value, variables.encryptionKey3, variables.encryptionAlgorithm3, variables.encryptionEncoding3, variables.encryptionIV3 );
 				break;
 
 				// default
@@ -774,6 +786,8 @@ component displayname="SecurityService" accessors="true" {
 			variables.keyStruct['alg'] = variables.algorithm & '/CBC/PKCS5Padding';
 			// set the encoding to HEX
 			variables.keyStruct['enc'] = 'HEX';
+			// set the initialization vector
+			variables.keyStruct['iv'] = generateInitializationVector( 'BASE64', arguments.keyLength );
 
 			// add this key to the keyring
 			variables.keyRing[i] = variables.keyStruct;
@@ -1611,6 +1625,33 @@ component displayname="SecurityService" accessors="true" {
 		}
 		// it wasn't found, return false;
 		return false;
+	}
+
+
+	/**
+	* @displayname	generateInitializationVector
+	* @description	I generate an initialization vector (IV) from random integers
+	* @param		encoding {String} required - I am the encoding to use for the initialization vector
+	* @return		string
+	*/
+	public string function generateInitializationVector( required string encoding, numeric keyLength = 128 ) {
+		// set up a var to store our integer array
+		var integerArr = [];
+		// set up a var to hold our IV byte
+		var iv = '';
+
+		// loop from 1 to the key length divided by 8 (16 for 128 bit, 32 for 256 bit)
+		for( var ix = 1; ix <= ( arguments.keyLength / 8 ); ix++ ) {
+			// append a random integer to our array
+			integerArr.append( randRange( -128, 127, 'SHA1PRNG' ) );
+		}
+
+		// cast the integer arry to a Java byte
+		iv = javaCast( "byte[]", integerArr );
+
+		// return the iv byte encoded with the requested encoding
+		return binaryEncode( iv, arguments.encoding );
+
 	}
 
 }
