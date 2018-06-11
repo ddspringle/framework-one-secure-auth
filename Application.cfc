@@ -211,20 +211,10 @@ component {
             hmacEncoding            = 'UTF-8'
         );
 
-        // clear the password from the application scope
-        structDelete( application, 'password' );
-
-        // clear the salt from the application scope
-        structDelete( application, 'salt' );
-
-        // clear the keyring filename from the application scope
-        structDelete( application, 'keyRingFilename' );
-
-        // clear the keyring path from the application scope
-        structDelete( application, 'keyRingPath' );
-
-        // clear the keyring from the application scope
-        structDelete( application, 'keyRing' );
+        // clear out temp keys from the application scope
+        for( item in [ 'password', 'salt', 'keyRingFilename', 'keyRingPath', 'keyRing', 'masterKey', 'developmentHmacKey', 'usePBKDF' ] ) {
+            structDelete( application, item );
+        }
 
         // set the name of the cookie to use for session management 
         // (*DO NOT USE* cfid, cftoken or jsessionid)
