@@ -1640,8 +1640,8 @@ component displayname="SecurityService" accessors="true" {
 		// set up a var to hold our IV byte
 		var iv = '';
 
-		// loop from 1 to the key length divided by 8 (16 for 128 bit, 32 for 256 bit)
-		for( var ix = 1; ix <= ( arguments.keyLength / 8 ); ix++ ) {
+		// loop from 1 to the key length divided by 16 (8 for 128 bit, 16 for 256 bit)
+		for( var ix = 1; ix <= ( arguments.keyLength / 16 ); ix++ ) {
 			// append a random integer to our array
 			integerArr.append( randRange( -128, 127, 'SHA1PRNG' ) );
 		}
