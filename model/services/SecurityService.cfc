@@ -648,11 +648,8 @@ component displayname="SecurityService" accessors="true" {
 	*/
 	public string function getSessionId() {
 
-		// generate a random session id hash
-		var sessionId = uberHash( createUUID() & now(), 'SHA-384', 2000 );
-
-		// and return the session id
-		return sessionId;
+		// generate a random session id hash and return it
+		return uberHash( createUUID() & now(), 'SHA-384', 2000 );
 
 	}
 
@@ -664,11 +661,8 @@ component displayname="SecurityService" accessors="true" {
 	*/
 	public string function setSessionIdForCookie( required string sessionId ) {
 
-		// encrypt the session id for cookie storage
-		var cookieId = dataEnc( arguments.sessionId, 'cookie' );
-
-		// and return the encrypted id
-		return cookieId;
+		// encrypt the session id for cookie storage and return it
+		return dataEnc( arguments.sessionId, 'cookie' );
 
 	}
 
@@ -680,11 +674,8 @@ component displayname="SecurityService" accessors="true" {
 	*/
 	public string function getSessionIdFromCookie( required string cookieId ) {
 
-		// get the value of the session id from the cookie
-		var sessionId = dataDec( arguments.cookieId, 'cookie' );
-
-		// and return the session id
-		return sessionId;
+		// return the value of the session id from the cookie
+		return dataDec( arguments.cookieId, 'cookie' );
 
 	}
 
@@ -706,11 +697,8 @@ component displayname="SecurityService" accessors="true" {
 	*/
 	public string function getHeartbeat() {
 
-		// get a random value for the heartbeat of the login form
-		var heartbeat = lCase( left( uberHash( now() & createUUID() & randRange( 1000, 9999, 'SHA1PRNG' ), 'SHA-384', randRange( 1000, 3000, 'SHA1PRNG' ) ), randRange( 32, 64, 'SHA1PRNG' ) ) );
-
-		// and return the heartbeat value
-		return heartbeat;
+		// get a random value for the heartbeat of the login form and return it
+		return lCase( left( uberHash( now() & createUUID() & randRange( 1000, 9999, 'SHA1PRNG' ), 'SHA-384', randRange( 1000, 3000, 'SHA1PRNG' ) ), randRange( 32, 64, 'SHA1PRNG' ) ) );
 
 	}
 
@@ -721,11 +709,8 @@ component displayname="SecurityService" accessors="true" {
 	*/
 	public string function getMfaCode() {
 
-		// get a random auth code of a random length for multi-factor authentication
-		var mfaCode = left( uberHash( createUUID() & now(), 'MD5', randRange( 1000, 3000, 'SHA1PRNG' ) ), randRange( 4, 8, 'SHA1PRNG' ) );
-
-		// and return the mfa code
-		return mfaCode;
+		// get a random auth code of a random length for multi-factor authentication and return it
+		return left( uberHash( createUUID() & now(), 'MD5', randRange( 1000, 3000, 'SHA1PRNG' ) ), randRange( 4, 8, 'SHA1PRNG' ) );
 
 	}
 
