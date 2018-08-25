@@ -772,7 +772,7 @@ component displayname="SecurityService" accessors="true" {
 			// set the encoding to HEX
 			variables.keyStruct['enc'] = 'HEX';
 			// set the initialization vector
-			variables.keyStruct['iv'] = generateInitializationVector( 'BASE64', arguments.keyLength );
+			variables.keyStruct['iv'] = generateInitializationVector( 'BASE64', variables.algorithm, arguments.keyLength );
 
 			// add this key to the keyring
 			variables.keyRing[i] = variables.keyStruct;
@@ -1619,19 +1619,34 @@ component displayname="SecurityService" accessors="true" {
 	* @param		encoding {String} required - I am the encoding to use for the initialization vector
 	* @return		string
 	*/
-	public string function generateInitializationVector( required string encoding, numeric keyLength = 128 ) {
+	public string function generateInitializationVector( required string encoding, string algorithm = 'AES', numeric keyLength = 128 ) {
+		
+		// set the default number of bits for the IV (16 for AES)
+		var bitLength = 16;
 		// set up a var to store our integer array
 		var integerArr = [];
 		// set up a var to hold our IV byte
 		var iv = '';
 
-		// loop from 1 to the key length divided by 16 (8 for 128 bit, 16 for 256 bit)
-		for( var ix = 1; ix <= ( arguments.keyLength / 16 ); ix++ ) {
+		// check if we're using the BLOWFISH algorithm
+		if( findNoCase( 'BLOWFISH', arguments.algorithm ) ) {
+			// we are, set the number of bits for the IV to 8
+			bitLength = 8;
+		}
+
+		// check if the key length is 256
+		if( arguments.keyLength eq 256 ) {
+			// it is, double the bitLength
+			bitLength += bitLength;
+		}
+
+		// loop from 1 to the bit length
+		for( var ix = 1; ix <= bitLength; ix++ ) {
 			// append a random integer to our array
 			integerArr.append( randRange( -128, 127, 'SHA1PRNG' ) );
 		}
 
-		// cast the integer arry to a Java byte
+		// cast the integer array to a Java byte
 		iv = javaCast( "byte[]", integerArr );
 
 		// return the iv byte encoded with the requested encoding
