@@ -1654,4 +1654,33 @@ component displayname="SecurityService" accessors="true" {
 
 	}
 
+	/**
+	* @displayname getGuid
+	* @description I return a MSSQL compatible GUID depending on the version of the engine in use
+	* @return	   string
+	*/	
+	public string function getGuid() {
+
+		// check if we're running lucee
+		if( findNoCase( 'lucee', application.engine ) ) {
+			// we are, return the native createGUID function results
+			return createGUID();
+		// otherwise
+		} else {
+			// we're on ACF, return a GUID compatible value from createUUID instead
+			return insert("-", createUUID(), 23);
+		}
+		
+	}
+
+	/**
+	* @displayname isGuid
+	* @description I return a true or false if the passed string is a valid GUID
+	* @param	   guid {String} required - I am the guid to check for validity
+	* @return	   boolean
+	*/	
+	public boolean function isGuid( required string guid ) {
+		return reFindNoCase( '^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$', arguments.guid );
+	}
+
 }
