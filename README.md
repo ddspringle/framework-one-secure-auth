@@ -58,7 +58,7 @@ This code has been expanded multiple times to include additional functionality n
 8. Change the `keyRingPath` location to where you moved the `keyrings` folder to in `Application.cfc`
 9. Change the hash iterations for the hashed keyring file name from the default value of `173` to some other integer number of iterations in `Application.cfc`
 10. Provide a unique BASE64 encoded value for the application password in `Application.cfc` (instead of `c2VjdXJlX2F1dGhfbWFzdGVyX2tleQ==`)
-11. Provide a unique BASE64 encoded value for the application sale in `Application.cfc` (instead of `UnRUcFBBS1hOQmgwem9XYg==`)
+11. Provide a unique BASE64 encoded value for the application salt in `Application.cfc` (instead of `UnRUcFBBS1hOQmgwem9XYg==`)
 12. Provide a unique BASE64 encoded value for the keyring filename in `Application.cfc` (instead of `c2VjdXJlX2F1dGhfa2V5cmluZw==`)
 13. Change the hash iterations for the hashed master key from the default value of `512` to some other integer number of iterations in `Application.cfc`
 14. Change the starting location for the `mid()` function of the hashed master key to start at a position other than `38` in a range from `1` to `106`
