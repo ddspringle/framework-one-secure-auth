@@ -153,7 +153,7 @@ component displayname="SecurityService" accessors="true" {
 				case 'master':
 					// using master encryption, encrypt with the master key
 					onePass = encrypt( arguments.value, variables.masterKey, 'AES/CBC/PKCS5Padding', 'HEX' );
-					lastPass = encrypt( onePass, variables.masterKey, 'BLOWFISH/CTR/PKCS5Padding', 'HEX' );
+					lastPass = encrypt( onePass, variables.masterKey, 'BLOWFISH/CBC/PKCS5Padding', 'HEX' );
 				break;
 
 				// URL
@@ -274,7 +274,7 @@ component displayname="SecurityService" accessors="true" {
 				// master
 				case 'master':
 					// using master encryption, decrypt with the master key and second algorithm
-					onePass = decrypt( arguments.value, variables.masterKey, 'BLOWFISH/CTR/PKCS5Padding', 'HEX' );
+					onePass = decrypt( arguments.value, variables.masterKey, 'BLOWFISH/CBC/PKCS5Padding', 'HEX' );
 					lastPass = decrypt( onePass, variables.masterKey, 'AES/CBC/PKCS5Padding', 'HEX' );
 				break;
 
