@@ -25,6 +25,10 @@ component displayname="SecurityService" accessors="true" {
 	property hmacEncoding;
 	property keyRingPath;
 	property masterKey;
+	property scryptUtil;
+	property scN;
+	property scR;
+	property scP;
 
 	/**
 	* @displayname init
@@ -46,6 +50,9 @@ component displayname="SecurityService" accessors="true" {
 	* @param	hmacEncoding {String} - I am the encoding used for hmac hashing
 	* @param	keyRingPath {String} - I am the path to the keyring file on disk
 	* @param	masterKey {String} - I am the master key used for encryption/decryption of the keyring
+	* @param 	scN {Numeric} - I am the scrypt CPU/Memory cost parameter. It must be larger than 1 and be a power of 2
+	* @param 	scR {Numeric} - I am the scrypt block size parameter
+	* @param 	scP {Numeric} - I am the scrypt parallelization parameter (nobody has ever chosen a p factor other than p=1)
 	* @return 	this
 	*/	
 	public function init( 
@@ -65,7 +72,10 @@ component displayname="SecurityService" accessors="true" {
 		string hmacAlgorithm = '',
 		string hmacEncoding = '',
 		string keyRingPath = '',
-		string masterKey = ''
+		string masterKey = '',
+		numeric scN = 16384,
+		numeric scR = 16,
+		numeric scP = 1
 		) {
 
 		variables.encryptionKey1 = arguments.encryptionKey1;
@@ -85,6 +95,10 @@ component displayname="SecurityService" accessors="true" {
 		variables.hmacEncoding = arguments.hmacEncoding;
 		variables.keyRingPath = arguments.keyRingPath;
 		variables.masterKey = arguments.masterKey;
+        variables.scryptUtil = createObject( "java", "com.lambdaworks.crypto.SCryptUtil" );
+        variables.scN = arguments.scN;
+        variables.scR = arguments.scR;
+        variables.scP = arguments.scP;
 
 		return this;
 	}
@@ -115,7 +129,10 @@ component displayname="SecurityService" accessors="true" {
 	* @param		mode {String} default: db - I am the mode of encryption to use - one of db, repeatable, url, form, cookie or master
 	* @return		string
 	*/
-	public string function dataEnc( required string value, string mode = 'db' ) {
+	public string function dataEnc(
+		required string value,
+		string mode = 'db'
+	) {
 		
 		var onePass = '';
 		var twoPass = '';
@@ -236,7 +253,10 @@ component displayname="SecurityService" accessors="true" {
 	* @param		mode {String} default: db - I am the mode of decryption to use - one of db, repeatable, url, form, cookie or master
 	* @return		string
 	*/
-	public string function dataDec( required string value, string mode = 'db' ) {
+	public string function dataDec(
+		required string value,
+		string mode = 'db'
+	) {
 
 		// var scope
 		var onePass = '';
@@ -394,22 +414,46 @@ component displayname="SecurityService" accessors="true" {
 	* @param		method {String} default: SHA-384 - I am the encoding to use for this hash
 	* @param		iterations {Numeric} default: 1000 - I am the number of times to has the value
 	* @param		useLowercase {Boolean} default: true - I flag if the hash should be returned lowercase (true) or uppercase (false)
+	* @param 		useScrypt {Boolean} default: false - I flag if the hash should be done using scrypt
 	* @param		addDate {Boolean} default: false - I flag if the current date should be appended to the input when hashing
 	* @return		string
 	*/
-	public string function uberHash( required string input, string method = 'SHA-384', numeric iterations = 1000, boolean useLowercase = true, boolean addDate = false ) {
+	public string function uberHash(
+		required string input,
+		string method = 'SHA-384',
+		numeric iterations = 1000,
+		boolean useLowercase = true,
+		boolean useScrypt = false,
+		boolean addDate = false
+	) {
 
-		// use the native hash() function with UTF-8 encoding to encode the input string
-		var output = hash( arguments.input & ( ( arguments.addDate ) ? dateFormat( now(), 'yyyymmdd' ) : '' ), arguments.method, 'UTF-8', arguments.iterations );
+		// check if we want to use scrypt for this hash
+		if( arguments.useScrypt ) {
 
-		// check if we're returning lowercase
-		if( arguments.useLowercase ) {
-			// we are, set the case of the hash to lowercase
-			output = lCase( output );
+			// we do, return the scrypt hash
+			return variables.scryptUtil.scrypt(
+				arguments.input & ( ( arguments.addDate ) ? dateFormat( now(), 'yyyymmdd' ) : '' ),
+				variables.scN,
+				variables.scR,
+				variables.scP
+			);
+
+		// otherwise
+		} else {
+
+			// use the native hash() function with UTF-8 encoding to encode the input string
+			var output = hash( arguments.input & ( ( arguments.addDate ) ? dateFormat( now(), 'yyyymmdd' ) : '' ), arguments.method, 'UTF-8', arguments.iterations );
+
+			// check if we're returning lowercase
+			if( arguments.useLowercase ) {
+				// we are, return lowercase output
+				return lCase( output );
+			}
+
+			// return original output (typically uppercase)
+			return output;
+
 		}
-
-		// return the hashed input value 
-		return output;
 
 	}
 
@@ -555,7 +599,12 @@ component displayname="SecurityService" accessors="true" {
 	* @param		lastName {String} required - I am the last name of the user
 	* @return		any
 	*/
-	public any function createUserSession( required numeric userId, required numeric role, required string firstName, required string lastName ) {
+	public any function createUserSession(
+		required numeric userId,
+		required numeric role,
+		required string firstName,
+		required string lastName
+	) {
 
 		// create a session object based on the passed in arguments
 		var sessionObj = new model.beans.Session(
@@ -898,7 +947,10 @@ component displayname="SecurityService" accessors="true" {
 	* @param		blockReserved {Boolean} default: false - I am a flag to determine if reserved (internal) ip addresses should be blocked (10.x.x.x, 192.168.x.x, etc. )
 	* @return 		boolean
 	*/
-	public boolean function isBlockedIP( required string ipAddress, boolean blockReserved = false ) {
+	public boolean function isBlockedIP(
+		required string ipAddress,
+		boolean blockReserved = false
+	) {
 
 		// get blocked IP's from the cache
 		var blockedIpArr = cacheGet( uberHash( 'blockedIpArr', 'MD5', 120 ) );
@@ -952,7 +1004,10 @@ component displayname="SecurityService" accessors="true" {
 	* @param		reason {String} - I am the reason why this IP is being blocked
 	* @return		void
 	*/
-	public void function addBlockedIP( required string ipAddress, string reason = '' ) {
+	public void function addBlockedIP(
+		required string ipAddress,
+		string reason = ''
+	) {
 
 		// get blocked IP's from the cache
 		var blockedIpArr = cacheGet( uberHash( 'blockedIpArr', 'MD5', 120 ) );
@@ -1185,7 +1240,10 @@ component displayname="SecurityService" accessors="true" {
 	* @param		reason {String} - I am the reason why this IP is being watched
 	* @return		void
 	*/
-	public void function addWatchedIp( required string ipAddress, string reason = '' ) {
+	public void function addWatchedIp(
+		required string ipAddress,
+		string reason = ''
+	) {
 
 		// get watched IP's from the cache
 		var watchedIpArr = cacheGet( uberHash( 'watchedIpArr', 'MD5', 57 ) );
@@ -1243,7 +1301,10 @@ component displayname="SecurityService" accessors="true" {
 	* @param		reason {String} - I am the reason why this IP is being watched
 	* @return		void
 	*/
-	public void function increaseWatchedIpCount( required string ipAddress, string reason = '' ) {
+	public void function increaseWatchedIpCount(
+		required string ipAddress,
+		string reason = ''
+	) {
 		
 		// get watched IP's from the cache
 		var watchedIpArr = cacheGet( uberHash( 'watchedIpArr', 'MD5', 57 ) );
@@ -1550,7 +1611,12 @@ component displayname="SecurityService" accessors="true" {
 			}
 
 			// put the new cached environment value into the cache
-			cachePut( 'deployed_environment_cache', environment, createTimeSpan( 1, 0, 0, 0 ), createTimeSpan( 0, 12, 0, 0 ) );
+			cachePut(
+				'deployed_environment_cache',
+				environment,
+				createTimeSpan( 1, 0, 0, 0 ),
+				createTimeSpan( 0, 12, 0, 0 )
+			);
 
 		}
 
@@ -1617,9 +1683,15 @@ component displayname="SecurityService" accessors="true" {
 	* @displayname	generateInitializationVector
 	* @description	I generate an initialization vector (IV) from random integers
 	* @param		encoding {String} required - I am the encoding to use for the initialization vector
+	* @param 		algorithm {String} - I am the algorithm the IV is being generated for (one of AES or BLOWFISH)
+	* @param 		keyLength {Numeric} - I am the keylength to generate the IV for
 	* @return		string
 	*/
-	public string function generateInitializationVector( required string encoding, string algorithm = 'AES', numeric keyLength = 128 ) {
+	public string function generateInitializationVector(
+		required string encoding,
+		string algorithm = 'AES',
+		numeric keyLength = 128
+	) {
 		
 		// set the default number of bits for the IV (16 for AES)
 		var bitLength = 16;

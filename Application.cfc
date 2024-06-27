@@ -6,6 +6,12 @@ component {
     this.sessionTimeout = createTimeSpan( 0, 0, 30, 0 ); // 30 minutes
     this.datasource = 'twofactorauth';
     this.scriptprotect = 'all';
+
+    this.javaSettings = {
+        loadPaths = [ expandPath( 'libs/' ) ],
+        reloadOnChange=true,
+        watchInterval=600
+    };
     // CF10+ uncomment the following line to make your cfid/cftoken cookies httpOnly
     // this.sessioncookie.httpOnly;
     
