@@ -1,6 +1,10 @@
 # FW/1 Secure Authentication Example
 
-This project is an example [fw/1](https://github.com/framework-one/fw1) application with secure single and two-factor (2FA) authentication and session management functions as follows:
+This project is an example [fw/1](https://github.com/framework-one/fw1) application with secure single and two-factor (2FA) authentication and session management functions. This code was originally put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and has since been transformed into a concise starting point for developers who need to create a secure application using the [fw/1](https://github.com/framework-one/fw1) CFML MVC framework.
+
+This code has been expanded multiple times to include additional functionality not shown during the initial presentation. More details on how (and why) these security functions work and are important can be gleaned from reading the ColdFusion Code Security guides on the bottom half of [CFDocs](http://cfdocs.org/security) and from reviewing the SecurityService.cfc in /model/services/ which has been expanded with comments to help aid in understanding how and why security features have been implemented and should be easy to pick up and run with for anyone with a passing familiarity of CFML and [fw/1](https://github.com/framework-one/fw1).
+
+## Features and Notes
 
 * Based on basic example [fw/1](https://github.com/framework-one/fw1) application
 * Uses subsystems for separation of concerns, securing only the `admin` subsystem
@@ -77,11 +81,6 @@ This project is an example [fw/1](https://github.com/framework-one/fw1) applicat
 	fileWrite( rc.keyRingPath, charsetDecode( rc.roundTwo, 'utf-8' ) );
 </cfscript>
 ```
-
-
-This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and has since been transformed into a concise starting point for developers who need to create a secure application using the [fw/1](https://github.com/framework-one/fw1) CFML MVC framework.
-
-This code has been expanded multiple times to include additional functionality not shown during the initial presentation. More details on how (and why) these security functions work and are important can be gleaned from reading the ColdFusion Code Security guides on the bottom half of [CFDocs](http://cfdocs.org/security) and from reviewing the SecurityService.cfc in /model/services/ which has been expanded with comments to help aid in understanding how and why security features have been implemented and should be easy to pick up and run with for anyone with a passing familiarity of [fw/1](https://github.com/framework-one/fw1).
 
 ## Compatibility
 
