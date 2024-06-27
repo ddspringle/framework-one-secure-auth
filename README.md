@@ -81,6 +81,7 @@ This code has been expanded multiple times to include additional functionality n
 	fileWrite( rc.keyRingPath, charsetDecode( rc.roundTwo, 'utf-8' ) );
 </cfscript>
 ```
+* NEW! The scrypt JAR has been added to the repository and initialized for use (with 32MB/64MB RAM used for hashing). It has been added to the `uberHash()` method of `SecurityService.cfc` and can be utilized by passing the flag `useScrypt` as `true` (default is `false`). e.g. `application.securityService.uberHash( input = 'mY$7R0nGP@$$w0R6', useScrypt = true )`
 
 ## Compatibility
 
