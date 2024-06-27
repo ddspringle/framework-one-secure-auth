@@ -214,7 +214,10 @@ component {
             encryptionIV3           = binaryDecode( application.keyRing[3].iv, 'BASE64' ),
             hmacKey                 = ( ( application.securityService.getEnvironment() eq 'prod' ) ? generateSecretKey( 'HMACSHA512' ) : application.developmentHmacKey ),
             hmacAlgorithm           = 'HMACSHA512',
-            hmacEncoding            = 'UTF-8'
+            hmacEncoding            = 'UTF-8',
+            scN                     = 16384,
+            scR                     = 16,
+            scP                     = 1
         );
 
         // clear out temp keys from the application scope
@@ -288,7 +291,7 @@ component {
         // Additional password files can be downloaded from:
         // https://github.com/danielmiessler/SecLists/tree/master/Passwords
         application.passwordFilePath = expandPath( 'data/top_100000_hacked_passwords.txt' );
-        
+
         // fire off framework one's method
         return _get_framework_one().onApplicationStart();
     }
