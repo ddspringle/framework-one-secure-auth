@@ -34,18 +34,60 @@ This project is an example [fw/1](https://github.com/framework-one/fw1) applicat
 * **BREAKING CHANGE** The dashboard controller has removed the `rc.product` and `rc.version` variables definitions and the dashboard view now uses the engine and engine version information derived from the application scope
 * There is now an option to use a hacked password list to prevent the system from generating, or user from choosing, a password from the top 100,000 known passwords. This is turned off (`false`) by default in `Application.cfc` for backwards compatibility. To use this new function you should set `application.rejectHackedPasswords` to `true`.
 * **BREAKING CHANGE** The `SecurityService.cfc` has been enhanced with additional functionality to randomly generate (when creating a new keyring) and use initialization vectors with all encryption and decryption. This will break existing code that is using a keyring without an initialization vector (will return an error about the length of the initialization vector).
-* NEW! **BREAKING CHANGE** The `SecurityService.cfc` has been modified for compatibility with JDK17+ as it relates to the master key encryption and decryption mode being used. Prior to these changes the master key encryption and decryption relied on the CTR block mode of encryption (BLOWFISH/CTR/PKCS5Padding). This has been modified to instead utilize CBC block mode (BLOWFISH/CBC/PKCS5Padding) for greater compatibility with JDK17+. This will break existing code that is using a keyring encrypted with the old CTR block mode. It is recommended to decrypt your existing keyring with the CTR block mode and then re-encrypt using the CBC block mode if you are upgrading from a previous version of this repository.
+* NEW! **BREAKING CHANGE** As of 6/26/2024, the `SecurityService.cfc` has been modified for compatibility with JDK17+ as it relates to the master key encryption and decryption block mode being utilized. Prior to these changes the master key encryption and decryption relied on the CTR block mode of encryption (BLOWFISH/CTR/PKCS5Padding). This has been modified to instead utilize CBC block mode (BLOWFISH/CBC/PKCS5Padding) for greater compatibility with JDK17+. This will break existing code that is using a keyring encrypted with the old CTR block mode. It is recommended to decrypt your existing keyring with the CTR block mode and then re-encrypt using the CBC block mode if you are upgrading from a previous version of this repository. The following code will help you accomplish this safely:
+
+```
+<cfscript>
+	if( !structKeyExists( variables, 'rc' ) ) {
+		variables.rc = {};
+		structAppend( rc, url );
+		structAppend( rc, form, true );
+	}
+
+	// set a keyring path
+	rc.keyRingPath = expandPath( './keyrings/[ABCDEF0123456789].bin' );
+	// set a keyring backup path
+	rc.backupPath = rc.keyRingPath & '_BACKUP_' & dateTimeFormat( now(), 'yyyymmddhhnnss' );
+
+	// validate the keyring file exists
+	if( !fileExists( rc.keyRingPath ) ) {
+		throw( rc.keyRingPath & ': keyring path does not exist!' );
+	}
+
+	// backup the existing keyring file
+	fileCopy( rc.keyRingPath, rc.backupPath );
+
+	// validate the backup file exists
+	if( !fileExists( rc.backupPath ) ) {
+		throw( rc.backupPath & ': backup path does not exist!' );
+	}
+
+	// load the CTR encrypted keyring from the file
+	rc.keyring = charsetEncode( fileReadBinary( rc.keyRingPath ), 'utf-8' );
+
+	// decrypt the keyring with the master key and BLOWFISH/CTR block mode
+	rc.roundOne = decrypt( rc.keyring, rc.masterKey, 'BLOWFISH/CTR/PKCS5Padding', 'HEX' );
+	rc.roundTwo = decrypt( roundOne, rc.masterKey, 'AES/CBC/PKCS5Padding', 'HEX' );
+
+	// re-encrypt the keyring with the master key and BLOWFISH/CBC block mode
+	rc.roundOne = encrypt( rc.roundTwo, rc.masterKey, 'AES/CBC/PKCS5Padding', 'HEX' );
+	rc.roundTwo = encrypt( roundOne, variables.masterKey, 'BLOWFISH/CBC/PKCS5Padding', 'HEX' );
+
+	// write the keyring back to disk
+	fileWrite( rc.keyRingPath, charsetDecode( rc.roundTwo, 'utf-8' ) );
+</cfscript>
+```
 
 
 This code was put together for the `ColdFusion: Code Security Best Practices` presentation by Denard Springle at [NCDevCon 2015](http://www.ncdevcon.com) and has since been transformed into a concise starting point for developers who need to create a secure application using the [fw/1](https://github.com/framework-one/fw1) CFML MVC framework.
 
-This code has been expanded multiple times to include additional functionality not shown during the initial presentation. More details on how (and why) these security functions work and are important can be gleaned from reading the ColdFusion Security documents on [CFDocs](http://cfdocs.org/security) and from reviewing the SecurityService.cfc in /model/services/ which has been expanded for content. The code is ripe with comments to help aid in understanding how and why security features have been implemented and should be easy to pick up and run with for anyone with a passing familiarity of [fw/1](https://github.com/framework-one/fw1).
+This code has been expanded multiple times to include additional functionality not shown during the initial presentation. More details on how (and why) these security functions work and are important can be gleaned from reading the ColdFusion Code Security guides on the bottom half of [CFDocs](http://cfdocs.org/security) and from reviewing the SecurityService.cfc in /model/services/ which has been expanded with comments to help aid in understanding how and why security features have been implemented and should be easy to pick up and run with for anyone with a passing familiarity of [fw/1](https://github.com/framework-one/fw1).
 
 ## Compatibility
 
 * Lucee 4.5+
 
-* NOTE: Not currently compatible with Adobe ColdFusion, but expected to be compatible with the next release.
+* Adobe ColdFusion 2021+
 
 ## Installing
 
