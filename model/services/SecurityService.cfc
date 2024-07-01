@@ -385,7 +385,7 @@ component displayname="SecurityService" accessors="true" {
 		help manage obfuscation with hashing.
 
 		Functions include:
-			generating a hash by passing in the input, method, iterations 
+			uberHash - generating a hash by passing in the input, method, iterations
 			and flags for case and date addition
 			NOTE: Breaking change in this release: 
 				  outcase (lower/upper) {String} parameter has been removed 
@@ -403,6 +403,8 @@ component displayname="SecurityService" accessors="true" {
 				  you use addDate = true on internal, non-public or otherwise non-indexed
 				  views within your application. Use of addDate on public/indexed pages
 				  will break the link and is, obviously, *not* recommended.
+			uberHash - generating a scrypt hash by passing in the input and useScrypt = true
+			checkScrypt - validating an scrypt hashed value by passing in the plain text and hashed values to compare
 
 
 	*/
@@ -455,6 +457,20 @@ component displayname="SecurityService" accessors="true" {
 
 		}
 
+	}
+
+	/**
+	* @displayname checkScrypt
+	* @description I check is a plain text string matches a previously scrypt hashed value
+	* @param 		plainText {String} required - I am the plain text version of the data to validate
+	* @param 		hashText {String} required - I am the scrypt hashed version of the data to validate
+	* @return 		boolean
+	*/
+	public boolean function checkScrypt(
+		required string plainText,
+		required string hashText
+	) {
+		return variables.scryptUtil.check( arguments.plainText, arguments.hashText );
 	}
 
 	/* RANDOM PASSWORD
