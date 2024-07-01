@@ -83,6 +83,9 @@ This code has been expanded multiple times to include additional functionality n
 ```
 * NEW! The scrypt JAR has been added to the repository and initialized for use (with 32MB/64MB RAM used for hashing). It has been added to the `uberHash()` method of `SecurityService.cfc` and can be utilized by passing the flag `useScrypt` as `true` (default is `false`). e.g. `application.securityService.uberHash( input = 'mY$7R0nGP@$$w0R6', useScrypt = true )`
 
+* NEW! The scrypt JAR has been added to the repository and initialized for use (with 32MB/64MB RAM used for hashing). It has been added to the `uberHash()` method of `SecurityService.cfc` and can be utilized by passing the flag `useScrypt` as `true` (default is `false`). e.g. `application.securityService.uberHash( input = 'mY$7R0nGP@$$w0R6', useScrypt = true )`
+* NEW! The missing link... a new function, `checkScrypt()` has been added to the `SecurityService.cfc` to check for values hased using `useScript=true` with `uberHash()`
+
 ## Compatibility
 
 * Lucee 4.5+
